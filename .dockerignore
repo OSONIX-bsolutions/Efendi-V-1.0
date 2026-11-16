@@ -1,0 +1,14 @@
+node_modules
+dist
+dist-server
+build
+coverage
+.git
+.aistudio
+.env
+.env.*
+!.env.example
+data
+public/uploads
+*.log
+.DS_Store

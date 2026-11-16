@@ -1,0 +1,8 @@
+{
+  "name": "Efendi Restaraunt menu",
+  "description": "Interactive digital fast food menu with QR code sharing, WhatsApp and Telegram order dispatch, multilingual support (TJ, RU, EN), real-time store hours indicator, and owner CMS with sales analytics.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

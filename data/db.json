@@ -1,0 +1,1442 @@
+{
+  "menuItems": [
+    {
+      "id": "item-1794327586464",
+      "categoryId": "pizzas",
+      "name": {
+        "en": "Pizza Chekken",
+        "ru": "Пицца Куриный",
+        "tj": "Питса Мурги"
+      },
+      "description": {
+        "en": "Chicken meat, tomatoes, mozzarella cheese.",
+        "ru": "Куриное мясо, помидоp, сыр мацарелла.",
+        "tj": "Гӯшти мурғ, помидор, панири моцарелла."
+      },
+      "price": 63,
+      "imageUrl": "https://armnmyrkkjrgjrlkddua.supabase.co/storage/v1/object/public/menu_images/dishes/1794500532382_i9xb4_5.png",
+      "isAvailable": true,
+      "isHidden": false,
+      "isPopular": false,
+      "isNew": false,
+      "isSpicy": false,
+      "isHalal": true,
+      "prepTimeMinutes": 10,
+      "calories": 0,
+      "sortOrder": 1
+    },
+    {
+      "id": "item-1794327694390",
+      "categoryId": "pizzas",
+      "name": {
+        "en": "Sausage Pizza 35cm",
+        "ru": "Пицца \"Сосиска\" 35см",
+        "tj": "Питса \"Хасибча\" 35см"
+      },
+      "description": {
+        "en": "Sausages, mozzarella cheese.",
+        "ru": "Сосиски, сыр моцарелла.",
+        "tj": "Ҳасибчаҳо, панири моцарелла."
+      },
+      "price": 70,
+      "imageUrl": "https://armnmyrkkjrgjrlkddua.supabase.co/storage/v1/object/public/menu_images/dishes/1794500553324_v2sz0_6.png",
+      "isAvailable": true,
+      "isHidden": false,
+      "isPopular": false,
+      "isNew": false,
+      "isSpicy": false,
+      "isHalal": true,
+      "prepTimeMinutes": 10,
+      "calories": 0,
+      "sortOrder": 2
+    },
+    {
+      "id": "item-1794329017033",
+      "categoryId": "pizzas",
+      "name": {
+        "en": "Istanbul Pizza",
+        "ru": "Пицца «Стамбул»",
+        "tj": "Питсаи «Истанбул»"
+      },
+      "description": {
+        "en": "Sauce, cheese, sausage, hot dog sausage, chicken, beef, French fries, ketchup",
+        "ru": "Соус, сыр, колбаса, сосиска, куриное мясо, говядина, картофель фри, кетчуп",
+        "tj": "Чошнӣ, панир, ҳасиб, ҳасибча, гӯшти мурғ, гӯшти гов, картошкаи фри, кетчуп"
+      },
+      "price": 75,
+      "imageUrl": "https://armnmyrkkjrgjrlkddua.supabase.co/storage/v1/object/public/menu_images/dishes/1794502711435_z7zs5_39.png",
+      "isAvailable": true,
+      "isHidden": false,
+      "isPopular": false,
+      "isNew": false,
+      "isSpicy": false,
+      "isHalal": true,
+      "prepTimeMinutes": 10,
+      "calories": 0,
+      "sortOrder": 3
+    },
+    {
+      "id": "item-1794327840028",
+      "categoryId": "pizzas",
+      "name": {
+        "en": "Pizza \"Stambul-Combo\" 2person",
+        "ru": "Пицца \"Стамбул-Комбо\" для 2-х персон",
+        "tj": "Питса \"Стамбул-Комбо\" барои ду нафар"
+      },
+      "description": {
+        "en": "Tomato sauce, mozzarella cheese, chicken, French fries, ketchup, sausages, beef.",
+        "ru": "Томатный соус, сыр моцарелла, куриное мясо, картофель фри, кетчуп, сосиски, говядина.",
+        "tj": "Соуси помидорӣ, панири моцарелла, гӯшти мурғ, картошкаи фри, кетчуп, ҳасибчаҳо, гӯшти гов."
+      },
+      "price": 110,
+      "imageUrl": "https://armnmyrkkjrgjrlkddua.supabase.co/storage/v1/object/public/menu_images/dishes/1794500611674_p6r4x_8.png",
+      "isAvailable": true,
+      "isHidden": false,
+      "isPopular": false,
+      "isNew": false,
+      "isSpicy": false,
+      "isHalal": true,
+      "prepTimeMinutes": 10,
+      "calories": 0,
+      "sortOrder": 4
+    },
+    {
+      "id": "item-1794328581102",
+      "categoryId": "pizzas",
+      "name": {
+        "en": "Cheese Pizza",
+        "ru": "Пицца \"Сырный\" ",
+        "tj": "Питсаи «Панирӣ»"
+      },
+      "description": {
+        "en": "Sauce, cheese",
+        "ru": "Coус, сыр \n",
+        "tj": "Чошнӣ, панир"
+      },
+      "price": 60,
+      "imageUrl": "https://armnmyrkkjrgjrlkddua.supabase.co/storage/v1/object/public/menu_images/dishes/1794502494434_ezmdd_24.png",
+      "isAvailable": true,
+      "isHidden": false,
+      "isPopular": false,
+      "isNew": false,
+      "isSpicy": false,
+      "isHalal": true,
+      "prepTimeMinutes": 10,
+      "calories": 0,
+      "sortOrder": 5
+    },
+    {
+      "id": "item-1794328829067",
+      "categoryId": "pizzas",
+      "name": {
+        "en": "Pepperoni Pizza 35cm",
+        "ru": "Пицца «Пепперони» 35см",
+        "tj": "Питсаи «Пепперони» 35см"
+      },
+      "description": {
+        "en": "Sauce, cheese, sausage",
+        "ru": "Соус, сыр, колбаса",
+        "tj": "Чошнӣ, панир, ҳасиб"
+      },
+      "price": 75,
+      "imageUrl": "https://armnmyrkkjrgjrlkddua.supabase.co/storage/v1/object/public/menu_images/dishes/1794502609969_7mscq_36.png",
+      "isAvailable": true,
+      "isHidden": false,
+      "isPopular": false,
+      "isNew": false,
+      "isSpicy": false,
+      "isHalal": true,
+      "prepTimeMinutes": 10,
+      "calories": 0,
+      "sortOrder": 6
+    },
+    {
+      "id": "item-1794328868123",
+      "categoryId": "pizzas",
+      "name": {
+        "en": "Doner Meat Pizza 35cm",
+        "ru": "Пицца «Донер» с мясом 35см",
+        "tj": "Питсаи «Донер» бо гӯшт 35см"
+      },
+      "description": {
+        "en": "Sauce, cheese, beef, tomato",
+        "ru": "Соус, сыр, говядина, помидор",
+        "tj": "Чошнӣ, панир, гӯшти гов, помидор"
+      },
+      "price": 79,
+      "imageUrl": "https://armnmyrkkjrgjrlkddua.supabase.co/storage/v1/object/public/menu_images/dishes/1794502642922_zjcjs_37.png",
+      "isAvailable": true,
+      "isHidden": false,
+      "isPopular": false,
+      "isNew": false,
+      "isSpicy": false,
+      "isHalal": true,
+      "prepTimeMinutes": 10,
+      "calories": 0,
+      "sortOrder": 7
+    },
+    {
+      "id": "item-1794328927763",
+      "categoryId": "pizzas",
+      "name": {
+        "en": "Bolognese Pizza",
+        "ru": "Пицца «Болоньезе»",
+        "tj": "Питсаи «Болонезе»"
+      },
+      "description": {
+        "en": "Sauce, cheese, minced meat",
+        "ru": "Соус, сыр, фарш",
+        "tj": "Чошнӣ, панир, гӯшти қима"
+      },
+      "price": 85,
+      "imageUrl": "https://armnmyrkkjrgjrlkddua.supabase.co/storage/v1/object/public/menu_images/dishes/1794502678913_btvuo_38.png",
+      "isAvailable": true,
+      "isHidden": false,
+      "isPopular": false,
+      "isNew": false,
+      "isSpicy": false,
+      "isHalal": true,
+      "prepTimeMinutes": 10,
+      "calories": 0,
+      "sortOrder": 8
+    },
+    {
+      "id": "item-1794328033137",
+      "categoryId": "burgers",
+      "name": {
+        "en": "Cheddar Burger",
+        "ru": "Бургер \"Чеддер\"",
+        "tj": "Бургери «Чеддер»"
+      },
+      "description": {
+        "en": "Beef patty, cheddar cheese, lettuce, pickles, tomatoes, sauce.",
+        "ru": "Kотлет говяжий, сыр чеддер, салатный лист, слёные огурцы, помидор, соус\n2-котлета говяжий, сыр чеддер, салатный лист, солёные огурцы, помидор, соус.",
+        "tj": "Котлети говӣ, панири чеддер, барги салат, бодиринги шӯр, помидор, чошнӣ."
+      },
+      "price": 28,
+      "imageUrl": "https://armnmyrkkjrgjrlkddua.supabase.co/storage/v1/object/public/menu_images/dishes/1794500762335_1le71_15.png",
+      "isAvailable": true,
+      "isHidden": false,
+      "isPopular": false,
+      "isNew": false,
+      "isSpicy": false,
+      "isHalal": true,
+      "prepTimeMinutes": 10,
+      "calories": 0,
+      "sortOrder": 9
+    },
+    {
+      "id": "item-1794328118011",
+      "categoryId": "burgers",
+      "name": {
+        "en": "Chicken Burger",
+        "ru": "Kуриный бургер",
+        "tj": "Бургери мурғӣ"
+      },
+      "description": {
+        "en": "Chicken patty, lettuce, pickles, tomatoes, sauce.",
+        "ru": "Kуриная котлета, салатный лист, солёные огурцы, помидор, соус.",
+        "tj": "Котлети мурғӣ, барги салат, бодиринги шӯр, помидор, чошнӣ."
+      },
+      "price": 21,
+      "imageUrl": "https://armnmyrkkjrgjrlkddua.supabase.co/storage/v1/object/public/menu_images/dishes/1794500794880_42tio_16.png",
+      "isAvailable": true,
+      "isHidden": false,
+      "isPopular": false,
+      "isNew": false,
+      "isSpicy": false,
+      "isHalal": true,
+      "prepTimeMinutes": 10,
+      "calories": 0,
+      "sortOrder": 10
+    },
+    {
+      "id": "item-1794328215716",
+      "categoryId": "burgers",
+      "name": {
+        "en": "Breaded Chicken Burger",
+        "ru": "Чикен бургер с панировкой",
+        "tj": "Бургери мурғ бо қабати қирмиз"
+      },
+      "description": {
+        "en": "Breaded chicken, lettuce, tomato, fresh cucumbers, sauce.",
+        "ru": "Kурица с панировкой, салатный лист, помидор, огурцы свежие, соус.",
+        "tj": "Гӯшти мурғи паниронидашуда, барги салат, помидор, бодиринги тару тоза, чошнӣ."
+      },
+      "price": 18,
+      "imageUrl": "https://armnmyrkkjrgjrlkddua.supabase.co/storage/v1/object/public/menu_images/dishes/1794500905641_vzoih_17.png",
+      "isAvailable": true,
+      "isHidden": false,
+      "isPopular": false,
+      "isNew": false,
+      "isSpicy": false,
+      "isHalal": true,
+      "prepTimeMinutes": 10,
+      "calories": 0,
+      "sortOrder": 11
+    },
+    {
+      "id": "item-1794328339808",
+      "categoryId": "burgers",
+      "name": {
+        "en": "Big Burger",
+        "ru": "Биг бургер ",
+        "tj": "Биг бургер"
+      },
+      "description": {
+        "en": "Two beef patties, cheddar cheese, lettuce, pickles, tomato, sauce.",
+        "ru": "2-котлета говяжий, сыр чеддер, салатный лист, солёные огурцы, помидор, соус.",
+        "tj": "Ду котлети говӣ, панири чеддер, барги салат, бодиринги шӯр, помидор, чошнӣ."
+      },
+      "price": 38,
+      "imageUrl": "https://armnmyrkkjrgjrlkddua.supabase.co/storage/v1/object/public/menu_images/dishes/1794502400122_7pgkr_18.png",
+      "isAvailable": true,
+      "isHidden": false,
+      "isPopular": false,
+      "isNew": false,
+      "isSpicy": false,
+      "isHalal": true,
+      "prepTimeMinutes": 10,
+      "calories": 0,
+      "sortOrder": 12
+    },
+    {
+      "id": "item-1794328401468",
+      "categoryId": "burgers",
+      "name": {
+        "en": "Hamburger",
+        "ru": "Гамбургер ",
+        "tj": "Гамбургер"
+      },
+      "description": {
+        "en": "Beef patty, lettuce, cucumbers, tomato, sauce.",
+        "ru": "Kотлет говяжий, салатный лист, огурцы, помидор, соус.",
+        "tj": "Котлети говӣ, барги салат, бодиринг, помидор, чошнӣ."
+      },
+      "price": 24,
+      "imageUrl": "https://armnmyrkkjrgjrlkddua.supabase.co/storage/v1/object/public/menu_images/dishes/1794502422381_hu3ih_19.png",
+      "isAvailable": true,
+      "isHidden": false,
+      "isPopular": false,
+      "isNew": false,
+      "isSpicy": false,
+      "isHalal": true,
+      "prepTimeMinutes": 10,
+      "calories": 0,
+      "sortOrder": 13
+    },
+    {
+      "id": "item-1794328500821",
+      "categoryId": "burgers",
+      "name": {
+        "en": "Beef Burger",
+        "ru": "Бургер говяжий",
+        "tj": "Бургери говӣ"
+      },
+      "description": {
+        "en": "Beef doner meat, lettuce, pickles, tomato, sauce.",
+        "ru": "Mясо донер говяжий, салатный лист, огурцы солёные, помидо, соус.",
+        "tj": "Гӯшти донери говӣ, барги салат, бодиринги шӯр, помидор, чошнӣ."
+      },
+      "price": 29,
+      "imageUrl": "https://armnmyrkkjrgjrlkddua.supabase.co/storage/v1/object/public/menu_images/dishes/1794502457631_adr4p_20.png",
+      "isAvailable": true,
+      "isHidden": false,
+      "isPopular": false,
+      "isNew": false,
+      "isSpicy": false,
+      "isHalal": true,
+      "prepTimeMinutes": 10,
+      "calories": 0,
+      "sortOrder": 14
+    },
+    {
+      "id": "item-1794327466980",
+      "categoryId": "salads",
+      "name": {
+        "en": "Caesar Salad",
+        "ru": "Салат \"Цезарь\"",
+        "tj": "Хуриши \"Цезарь\""
+      },
+      "description": {
+        "en": "Chicken fillet, lettuce, tomatoes, Parmesan cheese, croutons",
+        "ru": "Куриное филе, листья салата, помидоры, сыр пармезан, сухарики, соус",
+        "tj": "Гӯшти мурғ, барги салат, помидор, панири пармезан, нони хушк, соус"
+      },
+      "price": 35,
+      "imageUrl": "https://armnmyrkkjrgjrlkddua.supabase.co/storage/v1/object/public/menu_images/dishes/1794499849772_bqpya_4.png",
+      "isAvailable": true,
+      "isHidden": false,
+      "isPopular": false,
+      "isNew": false,
+      "isSpicy": false,
+      "isHalal": true,
+      "prepTimeMinutes": 10,
+      "calories": 0,
+      "sortOrder": 15
+    },
+    {
+      "id": "item-1794328660098",
+      "categoryId": "desserts",
+      "name": {
+        "en": "Baklava",
+        "ru": "Пахлава",
+        "tj": "Паҳлава"
+      },
+      "description": {
+        "en": "",
+        "ru": "",
+        "tj": ""
+      },
+      "price": 10,
+      "imageUrl": "https://armnmyrkkjrgjrlkddua.supabase.co/storage/v1/object/public/menu_images/dishes/1794502522194_1jq7t_31.png",
+      "isAvailable": true,
+      "isHidden": false,
+      "isPopular": false,
+      "isNew": false,
+      "isSpicy": false,
+      "isHalal": true,
+      "prepTimeMinutes": 10,
+      "calories": 0,
+      "sortOrder": 16
+    },
+    {
+      "id": "item-1794327938501",
+      "categoryId": "desserts",
+      "name": {
+        "en": "Raspberry Cheesecake",
+        "ru": "Чизкейк \"Малина\"",
+        "tj": "Чизкейк «Тамашк»"
+      },
+      "description": {
+        "en": "",
+        "ru": "",
+        "tj": ""
+      },
+      "price": 35,
+      "imageUrl": "https://armnmyrkkjrgjrlkddua.supabase.co/storage/v1/object/public/menu_images/dishes/1794500684599_e9i7g_9.png",
+      "isAvailable": true,
+      "isHidden": false,
+      "isPopular": false,
+      "isNew": false,
+      "isSpicy": false,
+      "isHalal": true,
+      "prepTimeMinutes": 10,
+      "calories": 0,
+      "sortOrder": 17
+    },
+    {
+      "id": "item-1794327400161",
+      "categoryId": "desserts",
+      "name": {
+        "en": "Honey Cake",
+        "ru": "Торт \"Медовый\"",
+        "tj": "Торти асалӣ"
+      },
+      "description": {
+        "en": "",
+        "ru": "",
+        "tj": ""
+      },
+      "price": 30,
+      "imageUrl": "https://armnmyrkkjrgjrlkddua.supabase.co/storage/v1/object/public/menu_images/dishes/1794499825726_fm21w_3.jpg",
+      "isAvailable": true,
+      "isHidden": false,
+      "isPopular": false,
+      "isNew": false,
+      "isSpicy": false,
+      "isHalal": true,
+      "prepTimeMinutes": 10,
+      "calories": 0,
+      "sortOrder": 18
+    },
+    {
+      "id": "item-1794327780658",
+      "categoryId": "desserts",
+      "name": {
+        "en": "Nut Cake",
+        "ru": "Пирожное «Ореховое»",
+        "tj": "Ширинии «Чормағзӣ»"
+      },
+      "description": {
+        "en": "",
+        "ru": "",
+        "tj": ""
+      },
+      "price": 35,
+      "imageUrl": "https://armnmyrkkjrgjrlkddua.supabase.co/storage/v1/object/public/menu_images/dishes/1794500591722_ynhwf_7.png",
+      "isAvailable": true,
+      "isHidden": false,
+      "isPopular": false,
+      "isNew": false,
+      "isSpicy": false,
+      "isHalal": true,
+      "prepTimeMinutes": 10,
+      "calories": 0,
+      "sortOrder": 19
+    },
+    {
+      "id": "item-1794329116834",
+      "categoryId": "desserts",
+      "name": {
+        "en": "San Sebastian Cheesecake",
+        "ru": "Пирожное «Сан-Себастьян»",
+        "tj": "Ширинии «Сан-Себастян»"
+      },
+      "description": {
+        "en": "",
+        "ru": "",
+        "tj": ""
+      },
+      "price": 45,
+      "imageUrl": "https://armnmyrkkjrgjrlkddua.supabase.co/storage/v1/object/public/menu_images/dishes/1794502757113_cpur4_41.png",
+      "isAvailable": true,
+      "isHidden": false,
+      "isPopular": false,
+      "isNew": false,
+      "isSpicy": false,
+      "isHalal": true,
+      "prepTimeMinutes": 10,
+      "calories": 0,
+      "sortOrder": 20
+    },
+    {
+      "id": "item-1794329206619",
+      "categoryId": "desserts",
+      "name": {
+        "en": "Napoleon Cake",
+        "ru": "Пирожное «Наполеон»",
+        "tj": "Ширинии «Наполеон»"
+      },
+      "description": {
+        "en": "",
+        "ru": "",
+        "tj": ""
+      },
+      "price": 32,
+      "imageUrl": "https://armnmyrkkjrgjrlkddua.supabase.co/storage/v1/object/public/menu_images/dishes/1794502901369_0q282_48.png",
+      "isAvailable": true,
+      "isHidden": false,
+      "isPopular": false,
+      "isNew": false,
+      "isSpicy": false,
+      "isHalal": true,
+      "prepTimeMinutes": 10,
+      "calories": 0,
+      "sortOrder": 21
+    },
+    {
+      "id": "item-1794329072479",
+      "categoryId": "desserts",
+      "name": {
+        "en": "Raffaello Cake",
+        "ru": "Пирожное «Рафаэлло»",
+        "tj": "Ширинии «Рафаэлло»"
+      },
+      "description": {
+        "en": "",
+        "ru": "",
+        "tj": ""
+      },
+      "price": 35,
+      "imageUrl": "https://armnmyrkkjrgjrlkddua.supabase.co/storage/v1/object/public/menu_images/dishes/1794502736164_sk37z_40.png",
+      "isAvailable": true,
+      "isHidden": false,
+      "isPopular": false,
+      "isNew": false,
+      "isSpicy": false,
+      "isHalal": true,
+      "prepTimeMinutes": 10,
+      "calories": 0,
+      "sortOrder": 22
+    },
+    {
+      "id": "item-1794329294969",
+      "categoryId": "desserts",
+      "name": {
+        "en": "Oreo Cheesecake",
+        "ru": "Чизкейк «Орео»",
+        "tj": "Чизкейк «Орео»"
+      },
+      "description": {
+        "en": "",
+        "ru": "",
+        "tj": ""
+      },
+      "price": 35,
+      "imageUrl": "https://armnmyrkkjrgjrlkddua.supabase.co/storage/v1/object/public/menu_images/dishes/1794502936985_otyrr_51.png",
+      "isAvailable": true,
+      "isHidden": false,
+      "isPopular": false,
+      "isNew": false,
+      "isSpicy": false,
+      "isHalal": true,
+      "prepTimeMinutes": 10,
+      "calories": 0,
+      "sortOrder": 23
+    },
+    {
+      "id": "item-1794328764121",
+      "categoryId": "drinks",
+      "name": {
+        "en": "Pepsi 0.5 L",
+        "ru": "Пепси 0,5л",
+        "tj": "Пепси 0,5 л"
+      },
+      "description": {
+        "en": "",
+        "ru": "",
+        "tj": ""
+      },
+      "price": 9,
+      "imageUrl": "https://armnmyrkkjrgjrlkddua.supabase.co/storage/v1/object/public/menu_images/dishes/1794502569845_d3bnf_33.png",
+      "isAvailable": true,
+      "isHidden": false,
+      "isPopular": false,
+      "isNew": false,
+      "isSpicy": false,
+      "isHalal": true,
+      "prepTimeMinutes": 10,
+      "calories": 0,
+      "sortOrder": 24
+    },
+    {
+      "id": "item-1794328735250",
+      "categoryId": "drinks",
+      "name": {
+        "en": "Pepsi (Can)",
+        "ru": "Пепси ЖБ",
+        "tj": "Пепси (қуттии металлӣ)"
+      },
+      "description": {
+        "en": "",
+        "ru": "",
+        "tj": ""
+      },
+      "price": 15,
+      "imageUrl": "https://armnmyrkkjrgjrlkddua.supabase.co/storage/v1/object/public/menu_images/dishes/1794502545753_jpztx_32.png",
+      "isAvailable": true,
+      "isHidden": false,
+      "isPopular": false,
+      "isNew": false,
+      "isSpicy": false,
+      "isHalal": true,
+      "prepTimeMinutes": 10,
+      "calories": 0,
+      "sortOrder": 25
+    },
+    {
+      "id": "item-1794327345938",
+      "categoryId": "drinks",
+      "name": {
+        "en": "Pomegranate Drink",
+        "ru": " Гранатовый Напиток",
+        "tj": "Нушокии анори"
+      },
+      "description": {
+        "en": "",
+        "ru": "",
+        "tj": ""
+      },
+      "price": 15,
+      "imageUrl": "https://armnmyrkkjrgjrlkddua.supabase.co/storage/v1/object/public/menu_images/dishes/1794499745963_otwi3_2.png",
+      "isAvailable": true,
+      "isHidden": false,
+      "isPopular": false,
+      "isNew": false,
+      "isSpicy": false,
+      "isHalal": true,
+      "prepTimeMinutes": 10,
+      "calories": 0,
+      "sortOrder": 26
+    },
+    {
+      "id": "item-1794329263547",
+      "categoryId": "drinks",
+      "name": {
+        "en": "Turkish Tea (Glass)",
+        "ru": "Бардак чай",
+        "tj": "Чой дар истакони туркӣ"
+      },
+      "description": {
+        "en": "",
+        "ru": "",
+        "tj": ""
+      },
+      "price": 2,
+      "imageUrl": "https://armnmyrkkjrgjrlkddua.supabase.co/storage/v1/object/public/menu_images/dishes/1794502917542_5d236_49.png",
+      "isAvailable": true,
+      "isHidden": false,
+      "isPopular": false,
+      "isNew": false,
+      "isSpicy": false,
+      "isHalal": true,
+      "prepTimeMinutes": 10,
+      "calories": 0,
+      "sortOrder": 27
+    },
+    {
+      "id": "item-1794327212735",
+      "categoryId": "drinks",
+      "name": {
+        "en": "Airan",
+        "ru": "Айран",
+        "tj": "Айран "
+      },
+      "description": {
+        "en": "",
+        "ru": "",
+        "tj": ""
+      },
+      "price": 8,
+      "imageUrl": "https://armnmyrkkjrgjrlkddua.supabase.co/storage/v1/object/public/menu_images/dishes/1794499780033_t38zc_1.png",
+      "isAvailable": true,
+      "isHidden": false,
+      "isPopular": false,
+      "isNew": false,
+      "isSpicy": false,
+      "isHalal": true,
+      "prepTimeMinutes": 10,
+      "calories": 0,
+      "sortOrder": 28
+    },
+    {
+      "id": "item-1794329177986",
+      "categoryId": "drinks",
+      "name": {
+        "en": "Obi Zulol Water 0,5L",
+        "ru": "Оби Зулол 0,5л",
+        "tj": "Оби Зулол 0,5л"
+      },
+      "description": {
+        "en": "",
+        "ru": "",
+        "tj": ""
+      },
+      "price": 5,
+      "imageUrl": "https://armnmyrkkjrgjrlkddua.supabase.co/storage/v1/object/public/menu_images/dishes/1794502843117_29bbw_45.png",
+      "isAvailable": true,
+      "isHidden": false,
+      "isPopular": false,
+      "isNew": false,
+      "isSpicy": false,
+      "isHalal": true,
+      "prepTimeMinutes": 10,
+      "calories": 0,
+      "sortOrder": 29
+    },
+    {
+      "id": "item-1794553943050",
+      "categoryId": "breakfast",
+      "name": {
+        "en": "Eggs with Sausage",
+        "ru": "Тухм бо ҳасиб",
+        "tj": "Тухм бо ҳасиб"
+      },
+      "description": {
+        "en": "Eggs, sausage\n",
+        "ru": "яйцо, колбаса\n",
+        "tj": "Тухм, ҳасиб\n"
+      },
+      "price": 35,
+      "imageUrl": "https://armnmyrkkjrgjrlkddua.supabase.co/storage/v1/object/public/menu_images/dishes/1794554040865_2ccqr_11.png",
+      "isAvailable": true,
+      "isHidden": false,
+      "isPopular": false,
+      "isNew": false,
+      "isSpicy": false,
+      "isHalal": true,
+      "prepTimeMinutes": 10,
+      "calories": 0,
+      "sortOrder": 30
+    },
+    {
+      "id": "item-1794553841939",
+      "categoryId": "breakfast",
+      "name": {
+        "en": "Shakshuka",
+        "ru": "Шакшука \t",
+        "tj": "Шакшука\t"
+      },
+      "description": {
+        "en": "Eggs, garlic, onion, tomato sauce\n",
+        "ru": "яйцо, чеснок, лук, томатный соус\n",
+        "tj": "Тухм, сирпиёз, пиёз, чошнии помидорӣ\n"
+      },
+      "price": 35,
+      "imageUrl": "https://armnmyrkkjrgjrlkddua.supabase.co/storage/v1/object/public/menu_images/dishes/1794553920508_asfu4_10.png",
+      "isAvailable": true,
+      "isHidden": false,
+      "isPopular": false,
+      "isNew": false,
+      "isSpicy": false,
+      "isHalal": true,
+      "prepTimeMinutes": 10,
+      "calories": 0,
+      "sortOrder": 31
+    },
+    {
+      "id": "item-1794554052418",
+      "categoryId": "breakfast",
+      "name": {
+        "en": "Menemen",
+        "ru": "Менемен",
+        "tj": "Менемен"
+      },
+      "description": {
+        "en": "Eggs, bell peppers, tomatoes, tomato sauce\n",
+        "ru": "яйцо, болгарский перец, помидоры, томатный соус\n",
+        "tj": "Тухм, қаламфури булғорӣ, помидор, чошнии помидорӣ\n"
+      },
+      "price": 35,
+      "imageUrl": "https://armnmyrkkjrgjrlkddua.supabase.co/storage/v1/object/public/menu_images/dishes/1794554091581_zz4ha_12.png",
+      "isAvailable": true,
+      "isHidden": false,
+      "isPopular": false,
+      "isNew": false,
+      "isSpicy": false,
+      "isHalal": true,
+      "prepTimeMinutes": 10,
+      "calories": 0,
+      "sortOrder": 32
+    },
+    {
+      "id": "item-1794554238337",
+      "categoryId": "meat_dishes",
+      "name": {
+        "en": "Iskender",
+        "ru": "Искандер ",
+        "tj": "Искандар"
+      },
+      "description": {
+        "en": "Croutons, beef, chakka (strained yogurt), tomato sauce, tomato, pickles, French fries\n",
+        "ru": "сухарики, мясо говяжий, чакка, томатный соус, помидор, солёные огурцы, фри\n",
+        "tj": "Нони хушк, гӯшти гов, чакка, чошнии помидорӣ, помидор, бодиринги шӯр, картошкаи фри\n"
+      },
+      "price": 67,
+      "imageUrl": "https://armnmyrkkjrgjrlkddua.supabase.co/storage/v1/object/public/menu_images/dishes/1794554336096_jcl89_21.png",
+      "isAvailable": true,
+      "isHidden": false,
+      "isPopular": false,
+      "isNew": false,
+      "isSpicy": false,
+      "isHalal": true,
+      "prepTimeMinutes": 10,
+      "calories": 0,
+      "sortOrder": 33
+    },
+    {
+      "id": "item-1794554183009",
+      "categoryId": "meat_dishes",
+      "name": {
+        "en": "Beef Doner with Rice",
+        "ru": "Донер с рисом говяжий",
+        "tj": "Донер бо биринҷ ва гӯшти гов"
+      },
+      "description": {
+        "en": "",
+        "ru": "",
+        "tj": ""
+      },
+      "price": 65,
+      "imageUrl": "https://armnmyrkkjrgjrlkddua.supabase.co/storage/v1/object/public/menu_images/dishes/1794554208764_j49m2_14.png",
+      "isAvailable": true,
+      "isHidden": false,
+      "isPopular": false,
+      "isNew": false,
+      "isSpicy": false,
+      "isHalal": true,
+      "prepTimeMinutes": 10,
+      "calories": 0,
+      "sortOrder": 34
+    },
+    {
+      "id": "item-1794554106730",
+      "categoryId": "breakfast",
+      "name": {
+        "en": "Scrambled Eggs",
+        "ru": "Скрамбл",
+        "tj": "Тухми омехта (скрамбл)"
+      },
+      "description": {
+        "en": "Eggs, cheese, lettuce, tomatoes, cucumbers, bread\n",
+        "ru": "яйцо, сыр, салатный лист, помидор, огурцы, хлеб\n",
+        "tj": "Тухм, панир, барги салат, помидор, бодиринг, нон\n"
+      },
+      "price": 30,
+      "imageUrl": "https://armnmyrkkjrgjrlkddua.supabase.co/storage/v1/object/public/menu_images/dishes/1794554159033_lseuo_13.png",
+      "isAvailable": true,
+      "isHidden": false,
+      "isPopular": false,
+      "isNew": false,
+      "isSpicy": false,
+      "isHalal": true,
+      "prepTimeMinutes": 10,
+      "calories": 0,
+      "sortOrder": 35
+    },
+    {
+      "id": "item-1794577375117",
+      "categoryId": "meat_dishes",
+      "name": {
+        "en": "Efendi Cutlet",
+        "ru": "Котлет \"Эфенди\"",
+        "tj": "Котлети «Эфенди»"
+      },
+      "description": {
+        "en": "Beef patties, rice, lavash, pickles, tomato, red cabbage\n",
+        "ru": "котлеты говяжие, рис, лаваш, солёные огурцы, помидор, капуста красная \n",
+        "tj": "Котлетҳои говӣ, биринҷ, лаваш, бодиринги шӯр, помидор, карами сурх\n"
+      },
+      "price": 50,
+      "imageUrl": "https://armnmyrkkjrgjrlkddua.supabase.co/storage/v1/object/public/menu_images/dishes/1794577437077_hom9e_25.jpg",
+      "isAvailable": true,
+      "isHidden": false,
+      "isPopular": false,
+      "isNew": false,
+      "isSpicy": false,
+      "isHalal": true,
+      "prepTimeMinutes": 10,
+      "calories": 0,
+      "sortOrder": 9999
+    },
+    {
+      "id": "item-1794578334780",
+      "categoryId": "breakfast",
+      "name": {
+        "en": "Chicken Soup",
+        "ru": "Суп куриный",
+        "tj": "Шӯрбои мурғӣ"
+      },
+      "description": {
+        "en": "",
+        "ru": "",
+        "tj": ""
+      },
+      "price": 20,
+      "imageUrl": "https://armnmyrkkjrgjrlkddua.supabase.co/storage/v1/object/public/menu_images/dishes/1794578354954_8b2qt_50.png",
+      "isAvailable": true,
+      "isHidden": false,
+      "isPopular": false,
+      "isNew": false,
+      "isSpicy": false,
+      "isHalal": true,
+      "prepTimeMinutes": 10,
+      "calories": 0,
+      "sortOrder": 9999
+    },
+    {
+      "id": "item-1794577796836",
+      "categoryId": "meat_dishes",
+      "name": {
+        "en": "Spicy Breaded Chicken Wings",
+        "ru": "Крылышки в острой панировке",
+        "tj": "Болҳои мурғ дар қабати нонрезаи тунд"
+      },
+      "description": {
+        "en": "",
+        "ru": "",
+        "tj": ""
+      },
+      "price": 45,
+      "imageUrl": "https://armnmyrkkjrgjrlkddua.supabase.co/storage/v1/object/public/menu_images/dishes/1794577834065_i7k5l_28-29.png",
+      "isAvailable": true,
+      "isHidden": false,
+      "isPopular": false,
+      "isNew": false,
+      "isSpicy": false,
+      "isHalal": true,
+      "prepTimeMinutes": 10,
+      "calories": 0,
+      "sortOrder": 9999
+    },
+    {
+      "id": "item-1794578053805",
+      "categoryId": "meat_dishes",
+      "name": {
+        "en": "Chicken Sac Tava",
+        "ru": "Сачтава",
+        "tj": "Саҷтава"
+      },
+      "description": {
+        "en": "Bell pepper, tomato, chicken, sauce, rice\n",
+        "ru": "Болгарский перец, помидор, курица, соус, рис\n",
+        "tj": "Қаламфури булғорӣ, помидор, гӯшти мурғ, чошнӣ, биринҷ\n"
+      },
+      "price": 60,
+      "imageUrl": "https://armnmyrkkjrgjrlkddua.supabase.co/storage/v1/object/public/menu_images/dishes/1794578058931_8y8s9_42.png",
+      "isAvailable": true,
+      "isHidden": false,
+      "isPopular": false,
+      "isNew": false,
+      "isSpicy": false,
+      "isHalal": true,
+      "prepTimeMinutes": 10,
+      "calories": 0,
+      "sortOrder": 9999
+    },
+    {
+      "id": "item-1794577988916",
+      "categoryId": "pizzas",
+      "name": {
+        "en": "Chicken Pide",
+        "ru": "Пиде с курицей",
+        "tj": "Пиде бо мурғ"
+      },
+      "description": {
+        "en": "Sauce, cheese, chicken, tomato\n",
+        "ru": "Соус, сыр, куриное мясо, помидор\n",
+        "tj": "Чошнӣ, панир, гӯшти мурғ, помидор\n"
+      },
+      "price": 65,
+      "imageUrl": "https://armnmyrkkjrgjrlkddua.supabase.co/storage/v1/object/public/menu_images/dishes/1794578027726_keyf2_35.png",
+      "isAvailable": true,
+      "isHidden": false,
+      "isPopular": false,
+      "isNew": false,
+      "isSpicy": false,
+      "isHalal": true,
+      "prepTimeMinutes": 10,
+      "calories": 0,
+      "sortOrder": 9999
+    },
+    {
+      "id": "item-1794577543445",
+      "categoryId": "soups",
+      "name": {
+        "en": "Lentil Soup",
+        "ru": "Чечевычный суп ",
+        "tj": "Шӯрбои наск"
+      },
+      "description": {
+        "en": "Lentils\n",
+        "ru": "чечевица \n",
+        "tj": "Наск\n"
+      },
+      "price": 15,
+      "imageUrl": "https://armnmyrkkjrgjrlkddua.supabase.co/storage/v1/object/public/menu_images/dishes/1794577592647_b7pr3_27.png",
+      "isAvailable": true,
+      "isHidden": false,
+      "isPopular": false,
+      "isNew": false,
+      "isSpicy": false,
+      "isHalal": true,
+      "prepTimeMinutes": 10,
+      "calories": 0,
+      "sortOrder": 9999
+    },
+    {
+      "id": "item-1794577293805",
+      "categoryId": "doner",
+      "name": {
+        "en": "Efendi Kebab",
+        "ru": "Эфенди кебаб ",
+        "tj": "Кебаби «Эфенди»"
+      },
+      "description": {
+        "en": "Lavash, cheese, onion, beef\n",
+        "ru": "лаваш, сыр, лук, мясо говяжий\n",
+        "tj": "Лаваш, панир, пиёз, гӯшти гов\n"
+      },
+      "price": 35,
+      "imageUrl": "https://armnmyrkkjrgjrlkddua.supabase.co/storage/v1/object/public/menu_images/dishes/1794577362021_e9d5c_23.jfif",
+      "isAvailable": true,
+      "isHidden": false,
+      "isPopular": false,
+      "isNew": false,
+      "isSpicy": false,
+      "isHalal": true,
+      "prepTimeMinutes": 10,
+      "calories": 0,
+      "sortOrder": 9999
+    },
+    {
+      "id": "item-1794578122263",
+      "categoryId": "doner",
+      "name": {
+        "en": "Beef Non Kebab",
+        "ru": "Нон-кебаб с говядиной",
+        "tj": "Нонкабоб бо гӯшти гов"
+      },
+      "description": {
+        "en": "Beef, tomato, cucumbers, cabbage, sauce\n",
+        "ru": "Говядина, помидор, огурцы, капуста, соус\n",
+        "tj": "Гӯшти гов, помидор, бодиринг, карам, чошнӣ\n"
+      },
+      "price": 35,
+      "imageUrl": "https://armnmyrkkjrgjrlkddua.supabase.co/storage/v1/object/public/menu_images/dishes/1794578148792_evois_43-44.png",
+      "isAvailable": true,
+      "isHidden": false,
+      "isPopular": false,
+      "isNew": false,
+      "isSpicy": false,
+      "isHalal": true,
+      "prepTimeMinutes": 10,
+      "calories": 0,
+      "sortOrder": 9999
+    },
+    {
+      "id": "item-1794577224118",
+      "categoryId": "breakfast",
+      "name": {
+        "en": "English Breakfast",
+        "ru": "Завтрак английский ",
+        "tj": "Наҳории англисӣ"
+      },
+      "description": {
+        "en": "Egg, sausages, bread, chicken, lettuce, tomato, cucumbers, ketchup\n",
+        "ru": "яйцо, сосиски, хлеб, мясо куриное, салатный лист, помидор, огурцы, соус кетчуп\n",
+        "tj": "Тухм, ҳасибчаҳо, нон, гӯшти мурғ, барги салат, помидор, бодиринг, кетчуп\n"
+      },
+      "price": 38,
+      "imageUrl": "https://armnmyrkkjrgjrlkddua.supabase.co/storage/v1/object/public/menu_images/dishes/1794577283967_3u525_22.png",
+      "isAvailable": true,
+      "isHidden": false,
+      "isPopular": false,
+      "isNew": false,
+      "isSpicy": false,
+      "isHalal": true,
+      "prepTimeMinutes": 10,
+      "calories": 0,
+      "sortOrder": 9999
+    },
+    {
+      "id": "item-1794578174347",
+      "categoryId": "doner",
+      "name": {
+        "en": "Chicken Non Kebab",
+        "ru": "Нон-кебаб с курицей",
+        "tj": "Нонкабоб бо гӯшти мурғ"
+      },
+      "description": {
+        "en": "Chicken, tomato, cucumbers, cabbage, sauce\n",
+        "ru": "Курица, помидор, огурцы, капуста, соус\n",
+        "tj": "Гӯшти мурғ, помидор, бодиринг, карам, чошнӣ\n"
+      },
+      "price": 25,
+      "imageUrl": "https://armnmyrkkjrgjrlkddua.supabase.co/storage/v1/object/public/menu_images/dishes/1794578216304_4f7m8_43-44.png",
+      "isAvailable": true,
+      "isHidden": false,
+      "isPopular": false,
+      "isNew": false,
+      "isSpicy": false,
+      "isHalal": true,
+      "prepTimeMinutes": 10,
+      "calories": 0,
+      "sortOrder": 9999
+    },
+    {
+      "id": "item-1794577853244",
+      "categoryId": "meat_dishes",
+      "name": {
+        "en": "Chicken Thigh",
+        "ru": "Куриное бедро",
+        "tj": "Рони мурғ"
+      },
+      "description": {
+        "en": "Chicken thighs, rice, pickled cucumbers, tomatoes, red cabbage.\n",
+        "ru": "Куриные бёдра, рис, солёные огурцы, помидоры, краснокочанная капуста.\n",
+        "tj": "Ронҳои мурғ, биринҷ, бодиринги шӯр, помидор, карами сурх.\n"
+      },
+      "price": 55,
+      "imageUrl": "https://armnmyrkkjrgjrlkddua.supabase.co/storage/v1/object/public/menu_images/dishes/1794577887065_ocstz_30.png",
+      "isAvailable": true,
+      "isHidden": false,
+      "isPopular": false,
+      "isNew": false,
+      "isSpicy": false,
+      "isHalal": true,
+      "prepTimeMinutes": 10,
+      "calories": 0,
+      "sortOrder": 9999
+    },
+    {
+      "id": "item-1794578285555",
+      "categoryId": "soups",
+      "name": {
+        "en": "Ezogelin Soup",
+        "ru": "Суп «Эзогелин»",
+        "tj": "Шӯрбои «Эзогелин»"
+      },
+      "description": {
+        "en": "",
+        "ru": "",
+        "tj": ""
+      },
+      "price": 20,
+      "imageUrl": "https://armnmyrkkjrgjrlkddua.supabase.co/storage/v1/object/public/menu_images/dishes/1794578320636_zp1vv_47.png",
+      "isAvailable": true,
+      "isHidden": false,
+      "isPopular": false,
+      "isNew": false,
+      "isSpicy": false,
+      "isHalal": true,
+      "prepTimeMinutes": 10,
+      "calories": 0,
+      "sortOrder": 9999
+    },
+    {
+      "id": "item-1794578243715",
+      "categoryId": "doner",
+      "name": {
+        "en": "Hot Dog in Flatbread",
+        "ru": "Хот-дог в лепёшке",
+        "tj": "Хот-дог бо нон"
+      },
+      "description": {
+        "en": "Flatbread, sausage, tomato, cucumbers, sauce, chicken\n",
+        "ru": "Лепёшка, сосиска, помидор, огурцы, соус, куриное мясо\n",
+        "tj": "Нон, ҳасибча, помидор, бодиринг, чошнӣ, гӯшти мурғ\n"
+      },
+      "price": 15,
+      "imageUrl": "https://armnmyrkkjrgjrlkddua.supabase.co/storage/v1/object/public/menu_images/dishes/1794578269915_m3sh3_46.png",
+      "isAvailable": true,
+      "isHidden": false,
+      "isPopular": false,
+      "isNew": false,
+      "isSpicy": false,
+      "isHalal": true,
+      "prepTimeMinutes": 10,
+      "calories": 0,
+      "sortOrder": 9999
+    },
+    {
+      "id": "item-1794577929163",
+      "categoryId": "pizzas",
+      "name": {
+        "en": "Cheese Pide",
+        "ru": "Пиде сырный",
+        "tj": "Пидеи панирӣ"
+      },
+      "description": {
+        "en": "Dough, cheese\n",
+        "ru": "Тесто, сыр\n",
+        "tj": "Хамир, панир\n"
+      },
+      "price": 45,
+      "imageUrl": "https://armnmyrkkjrgjrlkddua.supabase.co/storage/v1/object/public/menu_images/dishes/1794577973471_wqs5w_34.png",
+      "isAvailable": true,
+      "isHidden": false,
+      "isPopular": false,
+      "isNew": false,
+      "isSpicy": false,
+      "isHalal": true,
+      "prepTimeMinutes": 10,
+      "calories": 0,
+      "sortOrder": 9999
+    },
+    {
+      "id": "item-1794577452725",
+      "categoryId": "meat_dishes",
+      "name": {
+        "en": "Beyti Doner",
+        "ru": "Бейти Донер ",
+        "tj": "Бейти донер"
+      },
+      "description": {
+        "en": "Beef, cheese, rice, chakka (strained yogurt), pickles, tomato, red cabbage, sauce\n",
+        "ru": "мясо говяжий, сыр, рис, чакка, солёные огурцы, помидор, красная капуста, соус\n",
+        "tj": "Гӯшти гов, панир, биринҷ, чакка, бодиринги шӯр, помидор, карами сурх, чошнӣ\n"
+      },
+      "price": 57,
+      "imageUrl": "https://armnmyrkkjrgjrlkddua.supabase.co/storage/v1/object/public/menu_images/dishes/1794577527735_wu3ed_26.png",
+      "isAvailable": true,
+      "isHidden": false,
+      "isPopular": false,
+      "isNew": false,
+      "isSpicy": false,
+      "isHalal": true,
+      "prepTimeMinutes": 10,
+      "calories": 0,
+      "sortOrder": 9999
+    },
+    {
+      "id": "item-1794577755933",
+      "categoryId": "meat_dishes",
+      "name": {
+        "en": "Breaded Chicken Wings",
+        "ru": "Крылышки в панировке ",
+        "tj": "Болҳои мурғ дар қабати нонреза"
+      },
+      "description": {
+        "en": "",
+        "ru": "",
+        "tj": ""
+      },
+      "price": 40,
+      "imageUrl": "https://armnmyrkkjrgjrlkddua.supabase.co/storage/v1/object/public/menu_images/dishes/1794577786935_u0tro_28-29.png",
+      "isAvailable": true,
+      "isHidden": false,
+      "isPopular": false,
+      "isNew": false,
+      "isSpicy": false,
+      "isHalal": true,
+      "prepTimeMinutes": 10,
+      "calories": 0,
+      "sortOrder": 9999
+    }
+  ],
+  "categories": [
+    {
+      "id": "breakfast",
+      "name": {
+        "en": "Breakfast",
+        "ru": "Завтрак",
+        "tj": "Наҳорӣ"
+      },
+      "icon": "🥞",
+      "sortOrder": 1
+    },
+    {
+      "id": "pizzas",
+      "name": {
+        "en": "Pizzas",
+        "ru": "Пиццы",
+        "tj": "Питсаҳо"
+      },
+      "icon": "🍕",
+      "sortOrder": 2
+    },
+    {
+      "id": "burgers",
+      "name": {
+        "en": "Burgers",
+        "ru": "Бургеры",
+        "tj": "Бургерҳо"
+      },
+      "icon": "🍔",
+      "sortOrder": 3
+    },
+    {
+      "id": "meat_dishes",
+      "name": {
+        "en": "Meat dishes",
+        "ru": "Мясные блюда",
+        "tj": "Хўрокҳои гӯшти"
+      },
+      "icon": "🥩",
+      "sortOrder": 4
+    },
+    {
+      "id": "doner",
+      "name": {
+        "en": "Doner",
+        "ru": "Донер",
+        "tj": "Дёнер"
+      },
+      "icon": "🥙",
+      "sortOrder": 5
+    },
+    {
+      "id": "soups",
+      "name": {
+        "en": "Soups",
+        "ru": "Супы",
+        "tj": "Шӯрбо"
+      },
+      "icon": "🍲",
+      "sortOrder": 6
+    },
+    {
+      "id": "salads",
+      "name": {
+        "en": "Salads",
+        "ru": "Салаты",
+        "tj": "Салатҳо"
+      },
+      "icon": "🥗",
+      "sortOrder": 7
+    },
+    {
+      "id": "desserts",
+      "name": {
+        "en": "Desserts",
+        "ru": "Десерты",
+        "tj": "Шириниҳо"
+      },
+      "icon": "🍰",
+      "sortOrder": 8
+    },
+    {
+      "id": "drinks",
+      "name": {
+        "en": "Drinks",
+        "ru": "Напитки",
+        "tj": "Нӯшокиҳо"
+      },
+      "icon": "🍹",
+      "sortOrder": 9
+    }
+  ],
+  "storeSettings": {
+    "name": "EFENDI",
+    "tagline": {
+      "en": "Craving perfection: artisan burgers, crispy chicken & stone-baked pizza",
+      "ru": "Самый вкусный и быстрый фастфуд из отборных продуктов",
+      "tj": "Таомҳои болаззаттарин ва зудпаз бо сифати аъло"
+    },
+    "currency": "TJS",
+    "whatsappNumber": "+971503279935",
+    "telegramUsername": "quickbite_express",
+    "whatsappEnabled": true,
+    "telegramEnabled": false,
+    "directOrderingOnly": false,
+    "orderChannel": "whatsapp",
+    "address": {
+      "en": "46/2 Ayni, Dushanbe (opposite Relax supermarket)",
+      "ru": "г. Душанбе, ул. Айни 46/2 (напротив супермаркет 'Релакс')",
+      "tj": "ш. Душанбе, хиёбони Рӯдакӣ 45 (рӯ ба рӯи Донишгоҳ)"
+    },
+    "phones": [
+      "+992 024 96 68 68"
+    ],
+    "instagram": "https://instagram.com/quickbite.tj",
+    "facebook": "https://facebook.com/quickbite.tj",
+    "telegramChannel": "https://t.me/quickbite_express",
+    "workingHours": {
+      "open": "08:00",
+      "close": "03:00",
+      "daysNote": {
+        "en": "Every day from 10:00 AM to 03:00 AM",
+        "ru": "Ежедневно с 10:00 до 03:00 без выходных",
+        "tj": "Ҳамарӯза аз 10:00 то 03:00 бе истироҳат"
+      }
+    },
+    "workingHoursRows": [
+      {
+        "id": "row-1",
+        "days": "Ҳамарӯза / Ежедневно",
+        "open": "10:00",
+        "close": "03:00"
+      }
+    ],
+    "manualStatusOverride": "auto",
+    "adminPin": "0000",
+    "staffPin": "1234",
+    "developerPin": "9999",
+    "cmsAccessMode": "hidden",
+    "cmsButtonVisible": false,
+    "shortcutSettings": {
+      "enableLongPress": true,
+      "keyboardShortcut": "ctrl+shift+a",
+      "enableTripleClick": true,
+      "enableKeyboardShortcut": true
+    },
+    "enabledDeliveryTypes": {
+      "pickup": true,
+      "dine_in": true,
+      "delivery": false
+    },
+    "orderNumberFormat": "4-digits",
+    "nextOrderNumber": 18,
+    "orderNumberPrefix": "#",
+    "enabledLanguages": {
+      "en": true,
+      "ru": true,
+      "tj": true
+    },
+    "test": 123,
+    "noRedirectDispatch": false
+  },
+  "orders": []
+}
