@@ -18,7 +18,7 @@ export const MenuHero: React.FC<MenuHeroProps> = ({
   showOnlyFavorites,
   setShowOnlyFavorites,
 }) => {
-  const { categories, favorites, language, storeSettings, isStoreOpen } = useStore();
+  const { categories, favorites, language, storeSettings, isStoreOpen, isLoadingCatalog } = useStore();
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -200,31 +200,39 @@ export const MenuHero: React.FC<MenuHeroProps> = ({
             </span>
           </button>
 
-          {/* Dynamic Category List */}
-          {sortedCategories.map((cat) => {
-            const isSelected = !showOnlyFavorites && selectedCategory === cat.id;
-            const label = cat.name[language] || cat.name.en;
-            return (
-              <button
-                type="button"
-                key={cat.id}
-                onClick={(e) =>
-                  handleCategoryButtonClick(e, () => {
-                    setShowOnlyFavorites(false);
-                    setSelectedCategory(cat.id);
-                  })
-                }
-                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all shadow-2xs shrink-0 ${
-                  isSelected
-                    ? 'bg-amber-500 text-white shadow-amber-500/20'
-                    : 'bg-white dark:bg-neutral-900 text-neutral-700 dark:text-neutral-300 border border-neutral-200 dark:border-neutral-800 hover:border-amber-400'
-                }`}
-              >
-                <span>{cat.icon}</span>
-                <span>{label}</span>
-              </button>
-            );
-          })}
+          {/* Dynamic Category List or Loading Skeleton */}
+          {isLoadingCatalog && sortedCategories.length === 0
+            ? Array.from({ length: 5 }).map((_, idx) => (
+                <div
+                  key={`cat-skel-${idx}`}
+                  aria-hidden="true"
+                  className="h-8 w-24 rounded-xl bg-neutral-200/80 dark:bg-neutral-800 animate-pulse shrink-0"
+                />
+              ))
+            : sortedCategories.map((cat) => {
+                const isSelected = !showOnlyFavorites && selectedCategory === cat.id;
+                const label = cat.name[language] || cat.name.en;
+                return (
+                  <button
+                    type="button"
+                    key={cat.id}
+                    onClick={(e) =>
+                      handleCategoryButtonClick(e, () => {
+                        setShowOnlyFavorites(false);
+                        setSelectedCategory(cat.id);
+                      })
+                    }
+                    className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all shadow-2xs shrink-0 ${
+                      isSelected
+                        ? 'bg-amber-500 text-white shadow-amber-500/20'
+                        : 'bg-white dark:bg-neutral-900 text-neutral-700 dark:text-neutral-300 border border-neutral-200 dark:border-neutral-800 hover:border-amber-400'
+                    }`}
+                  >
+                    <span>{cat.icon}</span>
+                    <span>{label}</span>
+                  </button>
+                );
+              })}
         </div>
 
         {/* Right edge subtle fade & scroll arrow when overflowed */}

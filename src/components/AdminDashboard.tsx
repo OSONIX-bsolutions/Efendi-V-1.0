@@ -65,6 +65,202 @@ interface AdminDashboardProps {
   onClose: () => void;
 }
 
+const AdminTabSkeleton: React.FC<{
+  activeTab: 'analytics' | 'menu' | 'categories' | 'settings' | 'developer' | 'import';
+}> = ({ activeTab }) => {
+  if (activeTab === 'analytics') {
+    return (
+      <div className="space-y-6 animate-pulse" aria-busy="true" aria-label="Loading analytics and orders">
+        {/* Filter Bar Skeleton */}
+        <div className="p-4 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="h-4 w-24 rounded-md bg-neutral-200/80 dark:bg-neutral-800" />
+            <div className="h-8 w-20 rounded-xl bg-neutral-200/80 dark:bg-neutral-800" />
+            <div className="h-8 w-24 rounded-xl bg-neutral-200/80 dark:bg-neutral-800" />
+            <div className="h-8 w-20 rounded-xl bg-neutral-200/80 dark:bg-neutral-800" />
+          </div>
+          <div className="h-8 w-28 rounded-xl bg-neutral-200/80 dark:bg-neutral-800" />
+        </div>
+
+        {/* 4 KPI Cards Skeleton */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          {Array.from({ length: 4 }).map((_, idx) => (
+            <div
+              key={`kpi-skel-${idx}`}
+              className="p-4 sm:p-5 rounded-3xl bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 space-y-3"
+            >
+              <div className="h-3 w-24 rounded bg-neutral-200/80 dark:bg-neutral-800" />
+              <div className="h-8 w-28 rounded-lg bg-neutral-200/90 dark:bg-neutral-800" />
+            </div>
+          ))}
+        </div>
+
+        {/* Top Selling Items Skeleton */}
+        <div className="p-5 sm:p-6 rounded-3xl bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-neutral-200/80 dark:bg-neutral-800" />
+            <div className="space-y-1.5">
+              <div className="h-4 w-44 rounded bg-neutral-200/80 dark:bg-neutral-800" />
+              <div className="h-3 w-64 rounded bg-neutral-200/60 dark:bg-neutral-800/70" />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {Array.from({ length: 6 }).map((_, idx) => (
+              <div
+                key={`top-skel-${idx}`}
+                className="p-3.5 rounded-2xl bg-neutral-50 dark:bg-neutral-800/60 border border-neutral-200/70 dark:border-neutral-700/70 space-y-2.5"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <div className="h-4 w-32 rounded bg-neutral-200/80 dark:bg-neutral-700" />
+                  <div className="h-4 w-12 rounded bg-neutral-200/80 dark:bg-neutral-700" />
+                </div>
+                <div className="h-1.5 w-full rounded-full bg-neutral-200 dark:bg-neutral-700" />
+                <div className="flex justify-between">
+                  <div className="h-3 w-16 rounded bg-neutral-200/70 dark:bg-neutral-700/70" />
+                  <div className="h-3 w-14 rounded bg-neutral-200/80 dark:bg-neutral-700" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Recent Orders List Skeleton */}
+        <div className="p-5 sm:p-6 rounded-3xl bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="space-y-1.5">
+              <div className="h-5 w-40 rounded bg-neutral-200/80 dark:bg-neutral-800" />
+              <div className="h-3 w-56 rounded bg-neutral-200/60 dark:bg-neutral-800/70" />
+            </div>
+            <div className="flex items-center gap-1.5">
+              {Array.from({ length: 4 }).map((_, idx) => (
+                <div key={`pill-skel-${idx}`} className="h-8 w-20 rounded-xl bg-neutral-200/80 dark:bg-neutral-800" />
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            {Array.from({ length: 4 }).map((_, idx) => (
+              <div
+                key={`ord-skel-${idx}`}
+                className="p-4 rounded-2xl bg-neutral-50 dark:bg-neutral-800/70 border border-neutral-200/80 dark:border-neutral-700/80 flex flex-col md:flex-row md:items-center justify-between gap-4"
+              >
+                <div className="space-y-2 flex-1">
+                  <div className="flex items-center gap-2">
+                    <div className="h-5 w-16 rounded bg-neutral-200/90 dark:bg-neutral-700" />
+                    <div className="h-4 w-24 rounded bg-neutral-200/70 dark:bg-neutral-700/70" />
+                    <div className="h-4 w-20 rounded-full bg-neutral-200/70 dark:bg-neutral-700/70" />
+                  </div>
+                  <div className="h-3.5 w-64 max-w-full rounded bg-neutral-200/80 dark:bg-neutral-700" />
+                  <div className="h-3 w-48 max-w-full rounded bg-neutral-200/60 dark:bg-neutral-700/70" />
+                </div>
+                <div className="flex items-center gap-3 shrink-0">
+                  <div className="h-5 w-16 rounded bg-neutral-200/90 dark:bg-neutral-700" />
+                  <div className="h-9 w-36 rounded-xl bg-neutral-200/80 dark:bg-neutral-700" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (activeTab === 'menu') {
+    return (
+      <div className="space-y-4 animate-pulse" aria-busy="true" aria-label="Loading menu management">
+        <div className="p-5 rounded-3xl bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="space-y-2">
+              <div className="h-5 w-44 rounded bg-neutral-200/80 dark:bg-neutral-800" />
+              <div className="h-3 w-72 max-w-full rounded bg-neutral-200/60 dark:bg-neutral-800/70" />
+            </div>
+            <div className="h-9 w-32 rounded-xl bg-neutral-200/80 dark:bg-neutral-800" />
+          </div>
+          <div className="flex items-center gap-2 pt-2 border-t border-neutral-100 dark:border-neutral-800">
+            {Array.from({ length: 5 }).map((_, idx) => (
+              <div key={`mcat-skel-${idx}`} className="h-8 w-24 rounded-xl bg-neutral-200/80 dark:bg-neutral-800" />
+            ))}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+          {Array.from({ length: 6 }).map((_, idx) => (
+            <div
+              key={`mitem-skel-${idx}`}
+              className="p-4 rounded-3xl bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 flex items-center gap-3.5"
+            >
+              <div className="w-16 h-16 rounded-2xl bg-neutral-200/80 dark:bg-neutral-800 shrink-0" />
+              <div className="flex-1 space-y-2">
+                <div className="h-4 w-40 rounded bg-neutral-200/80 dark:bg-neutral-800" />
+                <div className="h-3 w-24 rounded bg-neutral-200/60 dark:bg-neutral-800/70" />
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <div className="h-8 w-8 rounded-xl bg-neutral-200/80 dark:bg-neutral-800" />
+                <div className="h-8 w-8 rounded-xl bg-neutral-200/80 dark:bg-neutral-800" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (activeTab === 'categories') {
+    return (
+      <div className="space-y-4 animate-pulse" aria-busy="true" aria-label="Loading categories">
+        <div className="p-5 rounded-3xl bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 flex items-center justify-between gap-3">
+          <div className="space-y-2">
+            <div className="h-5 w-40 rounded bg-neutral-200/80 dark:bg-neutral-800" />
+            <div className="h-3 w-64 max-w-full rounded bg-neutral-200/60 dark:bg-neutral-800/70" />
+          </div>
+          <div className="h-9 w-32 rounded-xl bg-neutral-200/80 dark:bg-neutral-800" />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {Array.from({ length: 6 }).map((_, idx) => (
+            <div
+              key={`citem-skel-${idx}`}
+              className="p-4 rounded-3xl bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 flex items-center justify-between gap-3"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-neutral-200/80 dark:bg-neutral-800" />
+                <div className="space-y-1.5">
+                  <div className="h-4 w-28 rounded bg-neutral-200/80 dark:bg-neutral-800" />
+                  <div className="h-3 w-20 rounded bg-neutral-200/60 dark:bg-neutral-800/70" />
+                </div>
+              </div>
+              <div className="h-8 w-16 rounded-xl bg-neutral-200/80 dark:bg-neutral-800" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6 animate-pulse" aria-busy="true" aria-label="Loading configuration">
+      <div className="p-6 rounded-3xl bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 flex items-center gap-4">
+        <div className="w-12 h-12 rounded-2xl bg-neutral-200/80 dark:bg-neutral-800 shrink-0" />
+        <div className="space-y-2 flex-1">
+          <div className="h-5 w-52 rounded bg-neutral-200/80 dark:bg-neutral-800" />
+          <div className="h-3 w-80 max-w-full rounded bg-neutral-200/60 dark:bg-neutral-800/70" />
+        </div>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {Array.from({ length: 4 }).map((_, idx) => (
+          <div
+            key={`cfg-skel-${idx}`}
+            className="p-5 rounded-3xl bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 space-y-3"
+          >
+            <div className="h-4 w-40 rounded bg-neutral-200/80 dark:bg-neutral-800" />
+            <div className="h-10 w-full rounded-xl bg-neutral-200/60 dark:bg-neutral-800/70" />
+            <div className="h-10 w-full rounded-xl bg-neutral-200/60 dark:bg-neutral-800/70" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose }) => {
   const supabaseProjectRef = getSupabaseProjectRef();
   const supabaseDashboardBase = supabaseProjectRef
@@ -89,6 +285,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
     deleteOrder,
     setIsAdminAuthenticated,
     currentAdminRole,
+    isLoadingCatalog,
+    isLoadingOrders,
     bulkImportMenuItems,
     uploadItemImage,
   } = useStore();
@@ -1243,6 +1441,10 @@ create policy "Admin delete orders" on public.orders for delete
       {/* MAIN CONTENT AREA                                              */}
       {/* ============================================================== */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+        {(activeTab === 'analytics' ? isLoadingOrders : isLoadingCatalog) ? (
+          <AdminTabSkeleton activeTab={activeTab} />
+        ) : (
+          <>
         {/* ============================================================ */}
         {/* TAB 1: ANALYTICS & RECENT ORDERS                             */}
         {/* ============================================================ */}
@@ -3460,6 +3662,8 @@ create policy "Admin delete orders" on public.orders for delete
               </div>
             )}
           </div>
+        )}
+          </>
         )}
       </main>
 

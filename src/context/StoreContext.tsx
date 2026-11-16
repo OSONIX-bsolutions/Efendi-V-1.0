@@ -35,6 +35,8 @@ interface StoreContextValue {
   isStoreOpen: boolean;
   isAdminAuthenticated: boolean;
   currentAdminRole: AdminRole | null;
+  isLoadingCatalog: boolean;
+  isLoadingOrders: boolean;
   setCurrentAdminRole: (role: AdminRole | null) => void;
   setIsAdminAuthenticated: (auth: boolean, role?: AdminRole) => void;
   bulkImportMenuItems: (items: MenuItem[], mode: 'merge' | 'replace') => void;
@@ -168,9 +170,12 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [storeSettings, setStoreSettings] = useState<StoreSettings>(DEFAULT_STORE_SETTINGS);
   const [orders, setOrders] = useState<SavedOrder[]>([]);
 
-  // 5. Server-verified Admin Authentication State (never trusted from sessionStorage or user_metadata)
+  // 5. Server-verified Admin Authentication State & Loading Indicators
   const [isAdminAuthenticated, setIsAdminAuthenticatedState] = useState<boolean>(false);
   const [currentAdminRole, setCurrentAdminRoleState] = useState<AdminRole | null>(null);
+  const [isLoadingCatalog, setIsLoadingCatalog] = useState<boolean>(true);
+  const [isLoadingOrders, setIsLoadingOrders] = useState<boolean>(false);
+  const hasBootstrappedCatalogRef = useRef<boolean>(false);
 
   const setCurrentAdminRole = (role: AdminRole | null) => {
     setCurrentAdminRoleState(role);
@@ -178,11 +183,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const setIsAdminAuthenticated = (auth: boolean, role?: AdminRole) => {
     if (auth && role) {
+      setIsLoadingCatalog(true);
+      setIsLoadingOrders(true);
       setIsAdminAuthenticatedState(true);
       setCurrentAdminRoleState(role);
     } else {
       setIsAdminAuthenticatedState(false);
       setCurrentAdminRoleState(null);
+      setIsLoadingOrders(false);
       setOrders([]);
       supabaseService.signOut().catch(() => {});
     }
@@ -245,6 +253,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   useEffect(() => {
     let active = true;
 
+    if (!hasBootstrappedCatalogRef.current || isAdminAuthenticated) {
+      setIsLoadingCatalog(true);
+    }
+
     const loadInitialFromApi = async () => {
       try {
         const token = await supabaseService.getAccessToken();
@@ -278,6 +290,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }
       } catch (err) {
         console.warn('Initial catalog load error:', err);
+      } finally {
+        hasBootstrappedCatalogRef.current = true;
+        if (active) {
+          setIsLoadingCatalog(false);
+        }
       }
     };
 
@@ -324,10 +341,12 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   useEffect(() => {
     if (!isAdminAuthenticated) {
       setOrders([]);
+      setIsLoadingOrders(false);
       return;
     }
 
     let active = true;
+    setIsLoadingOrders(true);
 
     const loadOrders = async () => {
       try {
@@ -338,7 +357,12 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             setOrders(data);
           }
         }
-      } catch {}
+      } catch {
+      } finally {
+        if (active) {
+          setIsLoadingOrders(false);
+        }
+      }
     };
 
     loadOrders();
@@ -904,6 +928,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         isStoreOpen,
         isAdminAuthenticated,
         currentAdminRole,
+        isLoadingCatalog,
+        isLoadingOrders,
         setCurrentAdminRole,
         setIsAdminAuthenticated,
         bulkImportMenuItems,

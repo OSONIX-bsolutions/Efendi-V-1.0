@@ -27,6 +27,7 @@ const MainMenuApp: React.FC = () => {
     isAdminAuthenticated,
     currentAdminRole,
     setIsAdminAuthenticated,
+    isLoadingCatalog,
     storeSettings,
   } = useStore();
 
@@ -274,8 +275,60 @@ const MainMenuApp: React.FC = () => {
           </div>
         </div>
 
-        {/* Food Items Layout: 2 Columns Grid or 1 Column List */}
-        {menuItems.length === 0 ? (
+        {/* Food Items Layout: Skeleton on initial load, or 2/3 Columns Grid / 1 Column List */}
+        {isLoadingCatalog && menuItems.length === 0 ? (
+          <div className="space-y-8 pb-6" aria-busy="true" aria-label="Loading menu">
+            {Array.from({ length: 2 }).map((_, sectionIdx) => (
+              <section key={`menu-skel-sec-${sectionIdx}`} className="space-y-3.5">
+                <div className="flex items-center justify-between pb-2 border-b border-neutral-200/80 dark:border-neutral-800/90">
+                  <div className="h-5 w-40 rounded-lg bg-neutral-200/80 dark:bg-neutral-800 animate-pulse" />
+                  <div className="h-4 w-16 rounded-lg bg-neutral-200/70 dark:bg-neutral-800/80 animate-pulse" />
+                </div>
+
+                {viewMode === 'grid' ? (
+                  <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                    {Array.from({ length: 6 }).map((__, cardIdx) => (
+                      <div
+                        key={`grid-skel-${sectionIdx}-${cardIdx}`}
+                        className="rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 overflow-hidden animate-pulse"
+                      >
+                        <div className="aspect-[4/3] w-full bg-neutral-200/80 dark:bg-neutral-800" />
+                        <div className="p-3 sm:p-4 space-y-2.5">
+                          <div className="h-4 w-3/4 rounded-md bg-neutral-200/80 dark:bg-neutral-800" />
+                          <div className="h-3 w-full rounded-md bg-neutral-200/60 dark:bg-neutral-800/70" />
+                          <div className="pt-2 flex items-center justify-between gap-2">
+                            <div className="h-4 w-16 rounded-md bg-neutral-200/80 dark:bg-neutral-800" />
+                            <div className="h-8 w-16 rounded-xl bg-neutral-200/80 dark:bg-neutral-800" />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-3 sm:gap-4">
+                    {Array.from({ length: 4 }).map((__, rowIdx) => (
+                      <div
+                        key={`list-skel-${sectionIdx}-${rowIdx}`}
+                        className="flex flex-row items-center gap-3 sm:gap-4 p-3 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 animate-pulse"
+                      >
+                        <div className="w-28 h-28 sm:w-36 sm:h-36 shrink-0 rounded-xl bg-neutral-200/80 dark:bg-neutral-800" />
+                        <div className="flex-1 space-y-2.5 py-1">
+                          <div className="h-4 w-1/2 rounded-md bg-neutral-200/80 dark:bg-neutral-800" />
+                          <div className="h-3 w-4/5 rounded-md bg-neutral-200/60 dark:bg-neutral-800/70" />
+                          <div className="h-3 w-2/3 rounded-md bg-neutral-200/60 dark:bg-neutral-800/70" />
+                          <div className="pt-2 flex items-center justify-between">
+                            <div className="h-4 w-20 rounded-md bg-neutral-200/80 dark:bg-neutral-800" />
+                            <div className="h-8 w-20 rounded-xl bg-neutral-200/80 dark:bg-neutral-800" />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </section>
+            ))}
+          </div>
+        ) : menuItems.length === 0 ? (
           <div className="py-16 text-center rounded-3xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 p-8 my-4 shadow-sm">
             <div className="w-16 h-16 rounded-3xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto mb-4">
               <Utensils className="w-8 h-8" />
