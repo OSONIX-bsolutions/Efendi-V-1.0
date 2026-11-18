@@ -1,4 +1,4 @@
-import { Category, MenuItem, SavedOrder, StoreSettings } from '../types';
+import { Category, MenuItem, SavedOrder, StoreSettings } from '../types.js';
 
 export const DEFAULT_STORE_SETTINGS: StoreSettings = {
   name: 'EFENDI',

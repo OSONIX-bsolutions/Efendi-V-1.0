@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import { createApp } from '../server';
+import { createApp } from '../server.js';
 
 let appPromise: ReturnType<typeof createApp> | null = null;
 
@@ -27,11 +27,33 @@ export default async function handler(req: Request, res: Response) {
       appPromise = createApp({ serveFrontend: false });
     }
     const app = await appPromise;
-    return app(req, res);
+
+    await new Promise<void>((resolve, reject) => {
+      const done = () => resolve();
+      res.once('finish', done);
+      res.once('close', done);
+      try {
+        app(req, res, (err?: any) => {
+          if (err) {
+            reject(err);
+          } else if (!res.writableEnded) {
+            if (!res.headersSent) {
+              res.status(404).json({ error: 'API route not found' });
+            } else {
+              res.end();
+            }
+          }
+        });
+      } catch (invokeErr) {
+        reject(invokeErr);
+      }
+    });
   } catch (err: any) {
     appPromise = null;
-    return res.status(500).json({
-      error: err?.message || 'Serverless API handler initialization failed',
-    });
+    if (!res.headersSent) {
+      res.status(500).json({
+        error: err?.message || 'Serverless API handler failed',
+      });
+    }
   }
 }

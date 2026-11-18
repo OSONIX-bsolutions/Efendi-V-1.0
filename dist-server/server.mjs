@@ -77,15 +77,16 @@ var DEFAULT_MENU_ITEMS = [];
 var INITIAL_ORDERS = [];
 
 // server.ts
-var __filename = fileURLToPath(import.meta.url);
-var __dirname = path.dirname(__filename);
+var __filename = typeof import.meta?.url === "string" && import.meta.url.startsWith("file:") ? fileURLToPath(import.meta.url) : "";
+var __dirname = __filename ? path.dirname(__filename) : process.cwd();
 var PORT = Number(process.env.PORT) || 3e3;
 var isProduction = process.env.NODE_ENV === "production";
 var isVercel = Boolean(process.env.VERCEL);
 var SUPABASE_URL = (process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || "").trim();
 var SUPABASE_ANON_KEY = (process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || "").trim();
 var SUPABASE_SERVICE_ROLE_KEY = (process.env.SUPABASE_SERVICE_ROLE_KEY || "").trim();
-var isSupabaseConfigured = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
+var hasValidSupabaseUrl = /^https?:\/\/.+/i.test(SUPABASE_URL);
+var isSupabaseConfigured = Boolean(hasValidSupabaseUrl && SUPABASE_ANON_KEY);
 var HAS_EXPLICIT_TRACKING_SECRET = Boolean(process.env.ORDER_TRACKING_SECRET?.trim());
 var ORDER_TRACKING_SECRET = process.env.ORDER_TRACKING_SECRET?.trim() || crypto.randomBytes(32).toString("hex");
 if (isProduction && !HAS_EXPLICIT_TRACKING_SECRET) {
@@ -101,12 +102,19 @@ if (!SUPABASE_SERVICE_ROLE_KEY) {
     "\u26A0\uFE0F SUPABASE_SERVICE_ROLE_KEY is not configured. Admin user provisioning and privileged server-only queries require this key."
   );
 }
-var supabasePublic = isSupabaseConfigured ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-  auth: { autoRefreshToken: false, persistSession: false }
-}) : null;
-var supabaseAdmin = SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY ? createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-  auth: { autoRefreshToken: false, persistSession: false }
-}) : null;
+function safeCreateSupabaseClient(url, key) {
+  if (!/^https?:\/\/.+/i.test(url) || !key) return null;
+  try {
+    return createClient(url, key, {
+      auth: { autoRefreshToken: false, persistSession: false }
+    });
+  } catch (err) {
+    console.warn("Failed to initialize Supabase client:", err?.message);
+    return null;
+  }
+}
+var supabasePublic = isSupabaseConfigured ? safeCreateSupabaseClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+var supabaseAdmin = hasValidSupabaseUrl && SUPABASE_SERVICE_ROLE_KEY ? safeCreateSupabaseClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY) : null;
 function createUserSupabaseClient(accessToken) {
   if (!isSupabaseConfigured || !accessToken) return null;
   return createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
@@ -246,8 +254,13 @@ function parseEmailAllowlist(raw) {
 var DEVELOPER_EMAILS = parseEmailAllowlist(process.env.DEVELOPER_EMAILS);
 var ADMIN_EMAILS = parseEmailAllowlist(process.env.ADMIN_EMAILS);
 var STAFF_EMAILS = parseEmailAllowlist(process.env.STAFF_EMAILS);
+function normalizeRole(val) {
+  if (typeof val !== "string") return null;
+  const clean = val.trim().toLowerCase();
+  return clean === "staff" || clean === "admin" || clean === "developer" ? clean : null;
+}
 function isValidRole(val) {
-  return val === "staff" || val === "admin" || val === "developer";
+  return normalizeRole(val) !== null;
 }
 function extractBearerToken(req) {
   const header = req.headers.authorization;
@@ -256,18 +269,34 @@ function extractBearerToken(req) {
   return token || null;
 }
 async function resolveTrustedRole(user, accessToken) {
-  const appMetaRole = user.app_metadata?.role;
-  if (isValidRole(appMetaRole)) {
+  const appMetaRole = normalizeRole(user.app_metadata?.role);
+  if (appMetaRole) {
     return appMetaRole;
   }
   const db = supabaseAdmin || createUserSupabaseClient(accessToken);
   if (db) {
     try {
       const { data, error } = await db.from("team_roles").select("role").eq("user_id", user.id).maybeSingle();
-      if (!error && data && isValidRole(data.role)) {
-        return data.role;
+      if (error) {
+        console.warn("team_roles user_id lookup warning:", error.message);
       }
-    } catch {
+      const rowRole = normalizeRole(data?.role);
+      if (rowRole) {
+        return rowRole;
+      }
+      if (!supabaseAdmin) {
+        const { data: rpcRole, error: rpcErr } = await db.rpc("get_my_role");
+        if (!rpcErr) {
+          const parsedRpcRole = normalizeRole(rpcRole);
+          if (parsedRpcRole) return parsedRpcRole;
+        }
+      } else if (user.email) {
+        const { data: emailRow } = await supabaseAdmin.from("team_roles").select("role").ilike("email", user.email.trim()).maybeSingle();
+        const emailRole = normalizeRole(emailRow?.role);
+        if (emailRole) return emailRole;
+      }
+    } catch (e) {
+      console.warn("resolveTrustedRole DB lookup skipped:", e?.message);
     }
   }
   const email = user.email?.trim().toLowerCase() || "";
@@ -436,8 +465,10 @@ function getAllowedOrigins() {
 }
 async function createApp(options) {
   const shouldServeFrontend = options?.serveFrontend ?? !isVercel;
-  await syncFromSupabase(true).catch(() => {
-  });
+  if (shouldServeFrontend) {
+    await syncFromSupabase(true).catch(() => {
+    });
+  }
   const app = express();
   app.set("trust proxy", 1);
   const allowedOrigins = getAllowedOrigins();
@@ -461,6 +492,13 @@ async function createApp(options) {
       return res.sendStatus(204);
     }
     return next();
+  });
+  app.use((req, _res, next) => {
+    const desc = Object.getOwnPropertyDescriptor(req, "body");
+    if (desc && "value" in desc && desc.value !== void 0) {
+      req._body = true;
+    }
+    next();
   });
   app.use(express.json({ limit: "12mb" }));
   app.use(express.urlencoded({ limit: "12mb", extended: true }));
@@ -1061,6 +1099,14 @@ async function createApp(options) {
   app.all("/api/*", (_req, res) => {
     res.status(404).json({ error: "API route not found" });
   });
+  app.use((err, _req, res, _next) => {
+    console.error("Express error:", err);
+    if (!res.headersSent) {
+      res.status(err?.status || 500).json({
+        error: err?.message || "Internal server error"
+      });
+    }
+  });
   if (shouldServeFrontend) {
     if (!isProduction) {
       const vitePkg = "vite";
@@ -1112,7 +1158,7 @@ async function createApp(options) {
   }
   return app;
 }
-var isDirectExecution = !isVercel && Boolean(process.argv[1]) && path.resolve(process.argv[1]) === path.resolve(__filename);
+var isDirectExecution = !isVercel && Boolean(__filename) && Boolean(process.argv[1]) && path.resolve(process.argv[1]) === path.resolve(__filename);
 if (isDirectExecution) {
   createApp({ serveFrontend: true }).then((app) => {
     app.listen(PORT, "0.0.0.0", () => {

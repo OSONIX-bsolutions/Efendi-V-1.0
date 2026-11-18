@@ -11,7 +11,7 @@ import {
   DEFAULT_MENU_ITEMS,
   DEFAULT_STORE_SETTINGS,
   INITIAL_ORDERS,
-} from './src/data/defaultData';
+} from './src/data/defaultData.js';
 import {
   AdminRole,
   Category,
@@ -22,10 +22,13 @@ import {
   OrderStatus,
   SavedOrder,
   StoreSettings,
-} from './src/types';
+} from './src/types.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __filename =
+  typeof import.meta?.url === 'string' && import.meta.url.startsWith('file:')
+    ? fileURLToPath(import.meta.url)
+    : '';
+const __dirname = __filename ? path.dirname(__filename) : process.cwd();
 
 const PORT = Number(process.env.PORT) || 3000;
 const isProduction = process.env.NODE_ENV === 'production';
@@ -38,7 +41,8 @@ const SUPABASE_ANON_KEY = (
   ''
 ).trim();
 const SUPABASE_SERVICE_ROLE_KEY = (process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
-const isSupabaseConfigured = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
+const hasValidSupabaseUrl = /^https?:\/\/.+/i.test(SUPABASE_URL);
+const isSupabaseConfigured = Boolean(hasValidSupabaseUrl && SUPABASE_ANON_KEY);
 
 const HAS_EXPLICIT_TRACKING_SECRET = Boolean(process.env.ORDER_TRACKING_SECRET?.trim());
 const ORDER_TRACKING_SECRET =
@@ -58,17 +62,25 @@ if (!SUPABASE_SERVICE_ROLE_KEY) {
   );
 }
 
-const supabasePublic: SupabaseClient | null = isSupabaseConfigured
-  ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+function safeCreateSupabaseClient(url: string, key: string): SupabaseClient | null {
+  if (!/^https?:\/\/.+/i.test(url) || !key) return null;
+  try {
+    return createClient(url, key, {
       auth: { autoRefreshToken: false, persistSession: false },
-    })
+    });
+  } catch (err: any) {
+    console.warn('Failed to initialize Supabase client:', err?.message);
+    return null;
+  }
+}
+
+const supabasePublic: SupabaseClient | null = isSupabaseConfigured
+  ? safeCreateSupabaseClient(SUPABASE_URL, SUPABASE_ANON_KEY)
   : null;
 
 const supabaseAdmin: SupabaseClient | null =
-  SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY
-    ? createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-        auth: { autoRefreshToken: false, persistSession: false },
-      })
+  hasValidSupabaseUrl && SUPABASE_SERVICE_ROLE_KEY
+    ? safeCreateSupabaseClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
     : null;
 
 function createUserSupabaseClient(accessToken: string): SupabaseClient | null {
@@ -536,7 +548,9 @@ function getAllowedOrigins(): Set<string> {
 
 export async function createApp(options?: { serveFrontend?: boolean }): Promise<express.Express> {
   const shouldServeFrontend = options?.serveFrontend ?? !isVercel;
-  await syncFromSupabase(true).catch(() => {});
+  if (shouldServeFrontend) {
+    await syncFromSupabase(true).catch(() => {});
+  }
 
   const app = express();
   app.set('trust proxy', 1);
@@ -567,6 +581,14 @@ export async function createApp(options?: { serveFrontend?: boolean }): Promise<
       return res.sendStatus(204);
     }
     return next();
+  });
+
+  app.use((req: Request, _res: Response, next: NextFunction) => {
+    const desc = Object.getOwnPropertyDescriptor(req, 'body');
+    if (desc && 'value' in desc && desc.value !== undefined) {
+      (req as any)._body = true;
+    }
+    next();
   });
 
   app.use(express.json({ limit: '12mb' }));
@@ -1333,6 +1355,16 @@ export async function createApp(options?: { serveFrontend?: boolean }): Promise<
     res.status(404).json({ error: 'API route not found' });
   });
 
+  // Ensure API errors always return JSON instead of HTML error pages
+  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+    console.error('Express error:', err);
+    if (!res.headersSent) {
+      res.status(err?.status || 500).json({
+        error: err?.message || 'Internal server error',
+      });
+    }
+  });
+
   // -------------------------------------------------------------
   // Frontend Serving (standalone dev / Docker only; Vercel serves dist/ via CDN)
   // -------------------------------------------------------------
@@ -1399,6 +1431,7 @@ export async function createApp(options?: { serveFrontend?: boolean }): Promise<
 
 const isDirectExecution =
   !isVercel &&
+  Boolean(__filename) &&
   Boolean(process.argv[1]) &&
   path.resolve(process.argv[1]) === path.resolve(__filename);
 
