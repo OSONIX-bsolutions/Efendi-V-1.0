@@ -234,7 +234,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         return;
       }
       supabaseService
-        .verifyTokenWithServer(session.access_token)
+        .verifyTokenWithServer(session.access_token, session.user)
         .then((verified) => {
           if (!active) return;
           if (verified) {

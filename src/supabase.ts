@@ -515,33 +515,148 @@ export const supabaseService = {
       throw new Error('No access token received from Supabase Auth');
     }
 
-    const verified = await this.verifyTokenWithServer(token);
-    if (!verified) {
+    const result = await this.verifyTokenWithServerDetailed(token, data.user);
+    if (!result.verified) {
       await supabase.auth.signOut().catch(() => {});
-      throw new Error('Your account does not have an assigned Staff, Admin, or Developer role.');
+      throw new Error(
+        result.error || 'Your account does not have an assigned Staff, Admin, or Developer role.'
+      );
     }
 
-    return { user: data.user, session: data.session, role: verified.role };
+    return { user: data.user, session: data.session, role: result.verified.role };
   },
 
-  async verifyTokenWithServer(
-    accessToken: string
-  ): Promise<{ user: { id: string; email?: string }; role: AdminRole } | null> {
+  async resolveRoleDirectlyFromSupabase(
+    authUser?: { id?: string; email?: string; app_metadata?: Record<string, any> } | null
+  ): Promise<AdminRole | null> {
+    const parseRole = (val: unknown): AdminRole | null => {
+      if (typeof val !== 'string') return null;
+      const clean = val.trim().toLowerCase();
+      return clean === 'staff' || clean === 'admin' || clean === 'developer' ? clean : null;
+    };
+
+    const appRole = parseRole(authUser?.app_metadata?.role);
+    if (appRole) return appRole;
+
+    try {
+      const userId =
+        authUser?.id || (await supabase.auth.getUser()).data?.user?.id;
+      if (userId) {
+        const { data: row, error } = await supabase
+          .from('team_roles')
+          .select('role')
+          .eq('user_id', userId)
+          .maybeSingle();
+        if (!error) {
+          const tableRole = parseRole(row?.role);
+          if (tableRole) return tableRole;
+        }
+      }
+
+      const { data: rpcRole, error: rpcErr } = await supabase.rpc('get_my_role');
+      if (!rpcErr) {
+        const parsedRpc = parseRole(rpcRole);
+        if (parsedRpc) return parsedRpc;
+      }
+    } catch {
+      // Ignore fallback lookup errors
+    }
+
+    return null;
+  },
+
+  async verifyTokenWithServerDetailed(
+    accessToken: string,
+    authUser?: { id?: string; email?: string; app_metadata?: Record<string, any> } | null
+  ): Promise<{
+    verified: { user: { id: string; email?: string }; role: AdminRole } | null;
+    error?: string;
+  }> {
+    const parseRole = (val: unknown): AdminRole | null => {
+      if (typeof val !== 'string') return null;
+      const clean = val.trim().toLowerCase();
+      return clean === 'staff' || clean === 'admin' || clean === 'developer' ? clean : null;
+    };
+
     try {
       const res = await fetch('/api/auth/me', {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
-      if (!res.ok) return null;
       const text = await res.text();
-      if (!text || text.trim().startsWith('<')) return null;
-      const json = JSON.parse(text);
-      if (json?.role === 'staff' || json?.role === 'admin' || json?.role === 'developer') {
-        return { user: json.user, role: json.role };
+      const isHtml = text.trim().startsWith('<');
+      let json: any = null;
+      if (text && !isHtml) {
+        try {
+          json = JSON.parse(text);
+        } catch {}
       }
-      return null;
-    } catch {
-      return null;
+
+      if (res.ok && json) {
+        const role = parseRole(json.role);
+        if (role) {
+          return { verified: { user: json.user, role } };
+        }
+      }
+
+      // Strict rejection from configured backend (401 / 403): do not bypass
+      if (json && (res.status === 401 || res.status === 403)) {
+        return {
+          verified: null,
+          error:
+            json.error ||
+            'Your account does not have an assigned Staff, Admin, or Developer role.',
+        };
+      }
+
+      // If /api/auth/me returned HTML/404 (not deployed on Vercel yet) or 503 (missing server env vars),
+      // check trusted app_metadata / RLS-protected team_roles / get_my_role directly via Supabase.
+      if (isHtml || res.status === 404 || res.status === 503 || res.status >= 500) {
+        const fallbackRole = await this.resolveRoleDirectlyFromSupabase(authUser);
+        if (fallbackRole) {
+          const userInfo = authUser?.id
+            ? { id: authUser.id, email: authUser.email }
+            : { id: (await supabase.auth.getUser()).data?.user?.id || '', email: authUser?.email };
+          if (userInfo.id) {
+            return { verified: { user: userInfo, role: fallbackRole } };
+          }
+        }
+        return {
+          verified: null,
+          error: isHtml
+            ? `Authentication API (/api/auth/me) returned HTML (HTTP ${res.status}). Push the latest vercel.json & api/index.ts to Vercel, or ensure your user exists in public.team_roles.`
+            : json?.error || `Authentication API error (HTTP ${res.status}).`,
+        };
+      }
+
+      return {
+        verified: null,
+        error:
+          json?.error ||
+          'Your account does not have an assigned Staff, Admin, or Developer role.',
+      };
+    } catch (err: any) {
+      const fallbackRole = await this.resolveRoleDirectlyFromSupabase(authUser);
+      if (fallbackRole) {
+        const userInfo = authUser?.id
+          ? { id: authUser.id, email: authUser.email }
+          : { id: (await supabase.auth.getUser()).data?.user?.id || '', email: authUser?.email };
+        if (userInfo.id) {
+          return { verified: { user: userInfo, role: fallbackRole } };
+        }
+      }
+      return {
+        verified: null,
+        error: err?.message || 'Unable to verify account role with authentication server.',
+      };
     }
+  },
+
+  async verifyTokenWithServer(
+    accessToken: string,
+    authUser?: { id?: string; email?: string; app_metadata?: Record<string, any> } | null
+  ): Promise<{ user: { id: string; email?: string }; role: AdminRole } | null> {
+    const result = await this.verifyTokenWithServerDetailed(accessToken, authUser);
+    return result.verified;
   },
 
   async signOut(): Promise<void> {
@@ -565,7 +680,7 @@ export const supabaseService = {
   async getCurrentUser(): Promise<{ user: any; role: AdminRole } | null> {
     const session = await this.getSession();
     if (!session?.access_token || !session.user) return null;
-    const verified = await this.verifyTokenWithServer(session.access_token);
+    const verified = await this.verifyTokenWithServer(session.access_token, session.user);
     if (!verified) return null;
     return { user: session.user, role: verified.role };
   },

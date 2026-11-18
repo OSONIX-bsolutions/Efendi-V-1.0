@@ -258,8 +258,14 @@ const DEVELOPER_EMAILS = parseEmailAllowlist(process.env.DEVELOPER_EMAILS);
 const ADMIN_EMAILS = parseEmailAllowlist(process.env.ADMIN_EMAILS);
 const STAFF_EMAILS = parseEmailAllowlist(process.env.STAFF_EMAILS);
 
+function normalizeRole(val: unknown): AdminRole | null {
+  if (typeof val !== 'string') return null;
+  const clean = val.trim().toLowerCase();
+  return clean === 'staff' || clean === 'admin' || clean === 'developer' ? clean : null;
+}
+
 function isValidRole(val: unknown): val is AdminRole {
-  return val === 'staff' || val === 'admin' || val === 'developer';
+  return normalizeRole(val) !== null;
 }
 
 interface AuthRequest extends Request {
@@ -277,8 +283,8 @@ function extractBearerToken(req: Request): string | null {
 
 async function resolveTrustedRole(user: User, accessToken: string): Promise<AdminRole | null> {
   // 1. Server-managed app_metadata.role (never read user-editable user_metadata)
-  const appMetaRole = (user.app_metadata as Record<string, unknown> | undefined)?.role;
-  if (isValidRole(appMetaRole)) {
+  const appMetaRole = normalizeRole((user.app_metadata as Record<string, unknown> | undefined)?.role);
+  if (appMetaRole) {
     return appMetaRole;
   }
 
@@ -291,11 +297,33 @@ async function resolveTrustedRole(user: User, accessToken: string): Promise<Admi
         .select('role')
         .eq('user_id', user.id)
         .maybeSingle();
-      if (!error && data && isValidRole(data.role)) {
-        return data.role;
+      if (error) {
+        console.warn('team_roles user_id lookup warning:', error.message);
       }
-    } catch {
-      // Table may not exist yet before migration is run; fall through to email allowlists
+      const rowRole = normalizeRole(data?.role);
+      if (rowRole) {
+        return rowRole;
+      }
+
+      // 2b. Security-definer SQL helper fallback (when authenticated user client is active)
+      if (!supabaseAdmin) {
+        const { data: rpcRole, error: rpcErr } = await db.rpc('get_my_role');
+        if (!rpcErr) {
+          const parsedRpcRole = normalizeRole(rpcRole);
+          if (parsedRpcRole) return parsedRpcRole;
+        }
+      } else if (user.email) {
+        // 2c. Admin email lookup fallback if row was keyed by email cleanly
+        const { data: emailRow } = await supabaseAdmin
+          .from('team_roles')
+          .select('role')
+          .ilike('email', user.email.trim())
+          .maybeSingle();
+        const emailRole = normalizeRole(emailRow?.role);
+        if (emailRole) return emailRole;
+      }
+    } catch (e: any) {
+      console.warn('resolveTrustedRole DB lookup skipped:', e?.message);
     }
   }
 
