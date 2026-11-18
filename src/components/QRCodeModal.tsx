@@ -3,6 +3,7 @@ import QRCode from 'qrcode';
 import { useStore } from '../context/StoreContext';
 import { t } from '../i18n/translations';
 import { Category, Language, LocalizedString, MenuItem } from '../types';
+import { normalizeTelegramUsername, normalizeWhatsAppNumber } from '../utils/dispatch';
 import {
   X,
   Download,
@@ -22,7 +23,7 @@ interface QRCodeModalProps {
 }
 
 const LOGO_URL =
-  '/assets/aistudio/a_clean_png_style_logo_image_with_transparent_back_dd231807.png';
+  '/assets/aistudio/a_clean_png_style_logo_image_with_transparent_back_dd231807.webp';
 
 function getLocalized(
   loc: LocalizedString | undefined,
@@ -233,17 +234,12 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({ isOpen, onClose }) => 
 
   const contactHandles = useMemo(() => {
     const items: string[] = [];
-    if (
-      storeSettings.whatsappEnabled !== false &&
-      storeSettings.whatsappNumber?.trim()
-    ) {
-      items.push(`WhatsApp: ${storeSettings.whatsappNumber.trim()}`);
+    const wa = normalizeWhatsAppNumber(storeSettings.whatsappNumber);
+    if (storeSettings.whatsappEnabled !== false && wa) {
+      items.push(`WhatsApp: ${wa}`);
     }
-    if (
-      storeSettings.telegramEnabled !== false &&
-      storeSettings.telegramUsername?.trim()
-    ) {
-      const handle = storeSettings.telegramUsername.trim().replace(/^@/, '');
+    const handle = normalizeTelegramUsername(storeSettings.telegramUsername);
+    if (storeSettings.telegramEnabled !== false && handle) {
       items.push(`Telegram: @${handle}`);
     }
     return items;

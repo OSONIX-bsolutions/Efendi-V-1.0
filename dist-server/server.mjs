@@ -76,112 +76,12 @@ var DEFAULT_CATEGORIES = [];
 var DEFAULT_MENU_ITEMS = [];
 var INITIAL_ORDERS = [];
 
-// src/utils/orderFormatter.ts
-function escapeHtml(value) {
-  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
-function getDeliveryTypeDisplay(deliveryType) {
-  if (deliveryType === "delivery") {
-    return {
-      emoji: "\u{1F69A}",
-      label: "\u0411\u0443\u0440\u0434\u0430\u0440\u0430\u0441\u043E\u043D\u04E3 / \u0414\u043E\u0441\u0442\u0430\u0432\u043A\u0430 (Delivery)"
-    };
-  }
-  if (deliveryType === "pickup") {
-    return {
-      emoji: "\u{1F6CD}\uFE0F",
-      label: "\u0411\u043E \u0445\u0443\u0434 \u0431\u0443\u0440\u0434\u0430\u043D / \u0421\u0430\u043C\u043E\u0432\u044B\u0432\u043E\u0437 (Takeaway)"
-    };
-  }
-  return {
-    emoji: "\u{1F37D}\uFE0F",
-    label: "\u0414\u0430\u0440 \u043E\u0448\u0445\u043E\u043D\u0430 / \u0412 \u0437\u0430\u0432\u0435\u0434\u0435\u043D\u0438\u0438 (Dine-in)"
-  };
-}
-function getPaymentDisplay(paymentMethod) {
-  if (paymentMethod === "cash") {
-    return {
-      emoji: "\u{1F4B5}",
-      label: "\u041D\u0430\u049B\u0434 / \u041D\u0430\u043B\u0438\u0447\u043D\u044B\u0435 (Cash)"
-    };
-  }
-  return {
-    emoji: "\u{1F4B3}",
-    label: "\u041A\u043E\u0440\u0442 / \u041A\u0430\u0440\u0442\u043E\u0439 (Card)"
-  };
-}
-function formatOrderReceiptText(order, currency, itemNotesMap) {
-  const delivery = getDeliveryTypeDisplay(order.customer.deliveryType);
-  const payment = getPaymentDisplay(order.customer.paymentMethod);
-  const addressEmoji = order.customer.deliveryType === "dine_in" ? "\u{1FA91}" : "\u{1F4CD}";
-  const addressLabel = order.customer.deliveryType === "dine_in" ? "\u041C\u0438\u0437 / Table" : "\u0421\u0443\u0440\u043E\u0493\u0430 / Address";
-  const itemsSummary = order.items.map((it, idx) => {
-    const note = itemNotesMap?.[it.id];
-    return `\u27A4 ${idx + 1}. ${it.name} \xD7 ${it.quantity} = *${it.subtotal} ${currency}*${note ? ` (\u{1F4DD} ${note})` : ""}`;
-  }).join("\n");
-  const orderTime = new Date(order.createdAt || Date.now()).toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit"
-  });
-  const channelLine = order.channel === "whatsapp" ? "\u2726 *\u041A\u0430\u043D\u0430\u043B / Channel:* WhatsApp" : order.channel === "telegram" ? "\u2726 *\u041A\u0430\u043D\u0430\u043B / Channel:* Telegram" : "\u2726 *\u041A\u0430\u043D\u0430\u043B / Channel:* Direct In-App";
-  return [
-    `\u2605 *\u0424\u0410\u0420\u041C\u041E\u0418\u0428\u0418 \u041D\u0410\u0412 / NEW ORDER: ${order.orderNumber}*`,
-    "\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501",
-    `\u25B8 *\u041C\u0438\u0437\u043E\u04B7 / Name:* ${order.customer.name}`,
-    `\u25B8 *\u0422\u0435\u043B\u0435\u0444\u043E\u043D / Phone:* ${order.customer.phone}`,
-    `\u25B8 *\u041D\u0430\u0432\u044A / Order type:* ${delivery.label}`,
-    `\u25B8 *${addressLabel}:* ${order.customer.addressOrTable}`,
-    `\u25B8 *\u041F\u0430\u0440\u0434\u043E\u0445\u0442 / Payment:* ${payment.label}`,
-    channelLine,
-    ...order.customer.orderNotes ? [`\u25C6 *\u042D\u0437\u043E\u04B3 / Kitchen Notes:* ${order.customer.orderNotes}`] : [],
-    "",
-    "\u2756 *\u0422\u0410\u041E\u041C\u04B2\u041E / ORDER ITEMS:*",
-    itemsSummary,
-    "\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501",
-    `\u2726 *\u04B2\u0410\u041C\u0410\u0413\u04E2 / TOTAL: ${order.total} ${currency}*`,
-    `* *\u0412\u0430\u049B\u0442 / Time:* ${orderTime}`
-  ].join("\n");
-}
-function formatOrderTelegramHtml(order, currency, itemNotesMap) {
-  const delivery = getDeliveryTypeDisplay(order.customer.deliveryType);
-  const payment = getPaymentDisplay(order.customer.paymentMethod);
-  const addressEmoji = order.customer.deliveryType === "dine_in" ? "\u{1FA91}" : "\u{1F4CD}";
-  const addressLabel = order.customer.deliveryType === "dine_in" ? "\u041C\u0438\u0437 / Table" : "\u0421\u0443\u0440\u043E\u0493\u0430 / Address";
-  const itemsSummary = order.items.map((it, idx) => {
-    const note = itemNotesMap?.[it.id];
-    return `\u{1F354} ${idx + 1}. ${escapeHtml(it.name)} \xD7 ${it.quantity} = <b>${it.subtotal} ${escapeHtml(
-      currency
-    )}</b>${note ? ` (\u{1F4DD} ${escapeHtml(note)})` : ""}`;
-  }).join("\n");
-  const orderTime = new Date(order.createdAt || Date.now()).toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit"
-  });
-  const channelLine = order.channel === "whatsapp" ? "\u{1F4AC} <b>\u041A\u0430\u043D\u0430\u043B / Channel:</b> WhatsApp" : order.channel === "telegram" ? "\u2708\uFE0F <b>\u041A\u0430\u043D\u0430\u043B / Channel:</b> Telegram" : "\u{1F4F2} <b>\u041A\u0430\u043D\u0430\u043B / Channel:</b> Direct In-App";
-  return [
-    `\u{1F6CE}\uFE0F <b>\u0424\u0410\u0420\u041C\u041E\u0418\u0428\u0418 \u041D\u0410\u0412 / NEW ORDER: ${escapeHtml(order.orderNumber)}</b>`,
-    "\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501",
-    `\u{1F464} <b>\u041C\u0438\u0437\u043E\u04B7 / Name:</b> ${escapeHtml(order.customer.name)}`,
-    `\u{1F4DE} <b>\u0422\u0435\u043B\u0435\u0444\u043E\u043D / Phone:</b> ${escapeHtml(order.customer.phone)}`,
-    `${delivery.emoji} <b>\u041D\u0430\u0432\u044A / Order type:</b> ${escapeHtml(delivery.label)}`,
-    `${addressEmoji} <b>${addressLabel}:</b> ${escapeHtml(order.customer.addressOrTable)}`,
-    `${payment.emoji} <b>\u041F\u0430\u0440\u0434\u043E\u0445\u0442 / Payment:</b> ${escapeHtml(payment.label)}`,
-    channelLine,
-    ...order.customer.orderNotes ? [`\u{1F4DD} <b>\u042D\u0437\u043E\u04B3 / Kitchen Notes:</b> ${escapeHtml(order.customer.orderNotes)}`] : [],
-    "",
-    "\u{1F6D2} <b>\u0422\u0410\u041E\u041C\u04B2\u041E / ORDER ITEMS:</b>",
-    itemsSummary,
-    "\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501",
-    `\u{1F4B0} <b>\u04B2\u0410\u041C\u0410\u0413\u04E2 / TOTAL: ${order.total} ${escapeHtml(currency)}</b>`,
-    `\u23F0 <b>\u0412\u0430\u049B\u0442 / Time:</b> ${escapeHtml(orderTime)}`
-  ].join("\n");
-}
-
 // server.ts
 var __filename = fileURLToPath(import.meta.url);
 var __dirname = path.dirname(__filename);
 var PORT = Number(process.env.PORT) || 3e3;
 var isProduction = process.env.NODE_ENV === "production";
+var isVercel = Boolean(process.env.VERCEL);
 var SUPABASE_URL = (process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || "").trim();
 var SUPABASE_ANON_KEY = (process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || "").trim();
 var SUPABASE_SERVICE_ROLE_KEY = (process.env.SUPABASE_SERVICE_ROLE_KEY || "").trim();
@@ -219,10 +119,34 @@ var categoriesMemory = [...DEFAULT_CATEGORIES];
 var settingsMemory = { ...DEFAULT_STORE_SETTINGS };
 var ordersMemory = [...INITIAL_ORDERS];
 var lastSupabaseSyncAt = 0;
+var pendingOrderCounterOverride = null;
 function stripSensitiveSettingsFields(settings) {
   if (!settings || typeof settings !== "object") return settings;
   const { adminPin: _a, staffPin: _s, developerPin: _d, ...clean } = settings;
   return clean;
+}
+function normalizeWhatsAppNumber(raw) {
+  if (!raw || typeof raw !== "string") return "";
+  const digits = raw.trim().replace(/[^0-9]/g, "");
+  return digits ? `+${digits}` : "";
+}
+function normalizeTelegramUsername(raw) {
+  if (!raw || typeof raw !== "string") return "";
+  return raw.trim().replace(/^https?:\/\/(www\.)?(t\.me|telegram\.me)\//i, "").replace(/^(t\.me|telegram\.me)\//i, "").split(/[?#]/)[0].replace(/\/+$/, "").replace(/^@+/, "").trim();
+}
+function normalizeDispatchSettings(settings) {
+  const whatsappEnabled = settings.whatsappEnabled !== false;
+  const telegramEnabled = settings.telegramEnabled !== false;
+  const orderChannel = whatsappEnabled && telegramEnabled ? "both" : whatsappEnabled ? "whatsapp" : telegramEnabled ? "telegram" : "both";
+  return {
+    ...settings,
+    whatsappNumber: settings.whatsappNumber !== void 0 ? normalizeWhatsAppNumber(settings.whatsappNumber) : "",
+    telegramUsername: settings.telegramUsername !== void 0 ? normalizeTelegramUsername(settings.telegramUsername) : "",
+    whatsappEnabled,
+    telegramEnabled,
+    directOrderingOnly: settings.directOrderingOnly !== false,
+    orderChannel
+  };
 }
 function rowToCategory(row) {
   return {
@@ -415,206 +339,6 @@ function getDbClient(req) {
   }
   return supabasePublic;
 }
-function loadNotificationConfigFromEnv() {
-  return {
-    telegramBotToken: (process.env.TELEGRAM_BOT_TOKEN || "").trim(),
-    telegramChatId: (process.env.TELEGRAM_CHAT_ID || "").trim(),
-    whatsappProvider: process.env.WHATSAPP_PROVIDER || (process.env.CALLMEBOT_API_KEY ? "callmebot" : process.env.WHATSAPP_CLOUD_TOKEN ? "meta_cloud" : process.env.ORDER_WEBHOOK_URL ? "webhook" : "none"),
-    whatsappTargetNumber: (process.env.WHATSAPP_TARGET_NUMBER || settingsMemory?.whatsappNumber || "").trim(),
-    callmebotApiKey: (process.env.CALLMEBOT_API_KEY || "").trim(),
-    metaPhoneNumberId: (process.env.WHATSAPP_PHONE_NUMBER_ID || "").trim(),
-    metaAccessToken: (process.env.WHATSAPP_CLOUD_TOKEN || "").trim(),
-    webhookUrl: (process.env.ORDER_WEBHOOK_URL || "").trim(),
-    alsoNotifyTelegram: process.env.ALSO_NOTIFY_TELEGRAM !== "false"
-  };
-}
-var notificationConfigMemory = loadNotificationConfigFromEnv();
-function maskSecret(secret) {
-  if (!secret || secret.length < 6) return secret ? "\u2022\u2022\u2022\u2022\u2022\u2022" : "";
-  return `${"\u2022".repeat(Math.min(10, secret.length - 4))}${secret.slice(-4)}`;
-}
-function toNotificationConfigView(cfg) {
-  return {
-    telegramBotTokenConfigured: Boolean(cfg.telegramBotToken.trim()),
-    telegramBotTokenMasked: maskSecret(cfg.telegramBotToken),
-    telegramChatId: cfg.telegramChatId,
-    whatsappProvider: cfg.whatsappProvider,
-    whatsappTargetNumber: cfg.whatsappTargetNumber,
-    callmebotApiKeyConfigured: Boolean(cfg.callmebotApiKey.trim()),
-    callmebotApiKeyMasked: maskSecret(cfg.callmebotApiKey),
-    metaPhoneNumberId: cfg.metaPhoneNumberId,
-    metaAccessTokenConfigured: Boolean(cfg.metaAccessToken.trim()),
-    metaAccessTokenMasked: maskSecret(cfg.metaAccessToken),
-    webhookUrl: cfg.webhookUrl,
-    alsoNotifyTelegram: cfg.alsoNotifyTelegram
-  };
-}
-async function sendTelegramBotMessage(botToken, chatId, htmlText) {
-  try {
-    const response = await fetch(`https://api.telegram.org/bot${botToken.trim()}/sendMessage`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        chat_id: chatId.trim(),
-        text: htmlText,
-        parse_mode: "HTML",
-        disable_web_page_preview: true
-      })
-    });
-    const data = await response.json();
-    if (!response.ok || !data.ok) {
-      return { sent: false, message: data.description || `Telegram HTTP ${response.status}` };
-    }
-    return { sent: true, message: "Sent to restaurant Telegram chat" };
-  } catch (err) {
-    return { sent: false, message: err?.message || "Telegram request failed" };
-  }
-}
-async function sendWhatsAppProviderMessage(cfg, plainText, overrideNumber) {
-  const targetRaw = overrideNumber || cfg.whatsappTargetNumber || settingsMemory?.whatsappNumber || "";
-  const cleanPhone = targetRaw.replace(/[^0-9]/g, "");
-  if (cfg.whatsappProvider === "callmebot") {
-    if (!cleanPhone || !cfg.callmebotApiKey.trim()) {
-      return { sent: false, message: "CallMeBot API key or phone number missing" };
-    }
-    try {
-      const url = `https://api.callmebot.com/whatsapp.php?phone=${encodeURIComponent(
-        cleanPhone
-      )}&text=${encodeURIComponent(plainText)}&apikey=${encodeURIComponent(cfg.callmebotApiKey.trim())}`;
-      const res = await fetch(url);
-      const bodyText = await res.text();
-      if (!res.ok || /error|invalid|denied/i.test(bodyText)) {
-        return { sent: false, message: bodyText.slice(0, 180) || `CallMeBot HTTP ${res.status}` };
-      }
-      return { sent: true, message: "Sent to restaurant WhatsApp via CallMeBot" };
-    } catch (err) {
-      return { sent: false, message: err?.message || "CallMeBot request failed" };
-    }
-  }
-  if (cfg.whatsappProvider === "meta_cloud") {
-    if (!cleanPhone || !cfg.metaPhoneNumberId.trim() || !cfg.metaAccessToken.trim()) {
-      return { sent: false, message: "Meta WhatsApp Cloud API credentials incomplete" };
-    }
-    try {
-      const res = await fetch(
-        `https://graph.facebook.com/v21.0/${cfg.metaPhoneNumberId.trim()}/messages`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${cfg.metaAccessToken.trim()}`
-          },
-          body: JSON.stringify({
-            messaging_product: "whatsapp",
-            recipient_type: "individual",
-            to: cleanPhone,
-            type: "text",
-            text: { preview_url: false, body: plainText }
-          })
-        }
-      );
-      const json = await res.json();
-      if (!res.ok || json.error) {
-        return {
-          sent: false,
-          message: json.error?.message || `Meta Cloud API HTTP ${res.status}`
-        };
-      }
-      return { sent: true, message: "Sent to restaurant WhatsApp via Meta Cloud API" };
-    } catch (err) {
-      return { sent: false, message: err?.message || "Meta Cloud API request failed" };
-    }
-  }
-  if (cfg.whatsappProvider === "webhook") {
-    if (!cfg.webhookUrl.trim()) {
-      return { sent: false, message: "Webhook URL is empty" };
-    }
-    try {
-      const res = await fetch(cfg.webhookUrl.trim(), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          event: "new_order_whatsapp",
-          targetPhone: cleanPhone,
-          text: plainText,
-          timestamp: (/* @__PURE__ */ new Date()).toISOString()
-        })
-      });
-      if (!res.ok) {
-        return { sent: false, message: `Webhook returned HTTP ${res.status}` };
-      }
-      return { sent: true, message: "Sent to WhatsApp webhook endpoint" };
-    } catch (err) {
-      return { sent: false, message: err?.message || "Webhook request failed" };
-    }
-  }
-  return { sent: false, message: "No WhatsApp server provider configured" };
-}
-async function dispatchOrderToMessengers(order, channel, currency, itemNotesMap, overrideWhatsappNumber) {
-  const cfg = notificationConfigMemory;
-  const result = {};
-  const plainText = formatOrderReceiptText(order, currency, itemNotesMap);
-  const telegramHtml = formatOrderTelegramHtml(order, currency, itemNotesMap);
-  const shouldSendTelegram = Boolean(cfg.telegramBotToken.trim() && cfg.telegramChatId.trim()) && (channel === "telegram" || channel === "direct" || cfg.alsoNotifyTelegram);
-  const shouldSendWhatsApp = cfg.whatsappProvider !== "none" && (channel === "whatsapp" || channel === "direct");
-  const tasks = [];
-  if (shouldSendTelegram) {
-    tasks.push(
-      sendTelegramBotMessage(cfg.telegramBotToken, cfg.telegramChatId, telegramHtml).then((res) => {
-        result.telegram = { attempted: true, ...res };
-      })
-    );
-  } else if (channel === "telegram") {
-    result.telegram = {
-      attempted: false,
-      sent: false,
-      message: "Telegram Bot Token or Chat ID not configured on server yet"
-    };
-  }
-  if (shouldSendWhatsApp) {
-    tasks.push(
-      sendWhatsAppProviderMessage(cfg, plainText, overrideWhatsappNumber).then((res) => {
-        result.whatsapp = { attempted: true, ...res };
-      })
-    );
-  } else if (channel === "whatsapp") {
-    result.whatsapp = {
-      attempted: false,
-      sent: false,
-      message: "WhatsApp server provider not configured on server yet"
-    };
-  }
-  if (cfg.webhookUrl.trim() && cfg.whatsappProvider !== "webhook") {
-    tasks.push(
-      fetch(cfg.webhookUrl.trim(), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          event: "new_order",
-          channel,
-          order,
-          text: plainText,
-          targetPhone: overrideWhatsappNumber || cfg.whatsappTargetNumber,
-          timestamp: (/* @__PURE__ */ new Date()).toISOString()
-        })
-      }).then((res) => {
-        result.webhook = {
-          attempted: true,
-          sent: res.ok,
-          message: res.ok ? "Webhook delivered" : `Webhook HTTP ${res.status}`
-        };
-      }).catch((err) => {
-        result.webhook = {
-          attempted: true,
-          sent: false,
-          message: err?.message || "Webhook delivery failed"
-        };
-      })
-    );
-  }
-  await Promise.all(tasks);
-  return result;
-}
 var upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024 },
@@ -652,12 +376,25 @@ async function syncFromSupabase(force = false) {
     if (!catRes.error && Array.isArray(catRes.data)) {
       categoriesMemory = catRes.data.map(rowToCategory);
     }
-    if (!setRes.error && setRes.data?.data) {
-      const parsed = typeof setRes.data.data === "string" ? JSON.parse(setRes.data.data) : setRes.data.data;
-      settingsMemory = stripSensitiveSettingsFields({
-        ...DEFAULT_STORE_SETTINGS,
-        ...parsed
-      });
+    if (!setRes.error && setRes.data) {
+      const rowData = setRes.data.data;
+      const parsed = rowData && typeof rowData === "string" ? JSON.parse(rowData) : rowData && typeof rowData === "object" ? rowData : {};
+      const merged = normalizeDispatchSettings(
+        stripSensitiveSettingsFields({
+          ...DEFAULT_STORE_SETTINGS,
+          ...parsed,
+          ...setRes.data.whatsapp_number ? { whatsappNumber: setRes.data.whatsapp_number } : {},
+          ...setRes.data.telegram_username ? { telegramUsername: setRes.data.telegram_username } : {},
+          ...typeof setRes.data.whatsapp_enabled === "boolean" ? { whatsappEnabled: setRes.data.whatsapp_enabled } : {},
+          ...typeof setRes.data.telegram_enabled === "boolean" ? { telegramEnabled: setRes.data.telegram_enabled } : {},
+          ...typeof setRes.data.direct_ordering_only === "boolean" ? { directOrderingOnly: setRes.data.direct_ordering_only } : {}
+        })
+      );
+      if (pendingOrderCounterOverride !== null) {
+        const dbNext = typeof merged.nextOrderNumber === "number" && merged.nextOrderNumber > 0 ? merged.nextOrderNumber : 1;
+        merged.nextOrderNumber = Math.max(dbNext, pendingOrderCounterOverride);
+      }
+      settingsMemory = merged;
     }
     lastSupabaseSyncAt = Date.now();
   } catch (e) {
@@ -677,7 +414,15 @@ function injectPublicConfigIntoHtml(html) {
 }
 function getAllowedOrigins() {
   const set = /* @__PURE__ */ new Set();
-  const rawList = [process.env.ALLOWED_ORIGINS || "", process.env.APP_URL || ""].join(",");
+  const vercelHosts = [
+    process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "",
+    process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : ""
+  ];
+  const rawList = [
+    process.env.ALLOWED_ORIGINS || "",
+    process.env.APP_URL || "",
+    ...vercelHosts
+  ].join(",");
   for (const entry of rawList.split(",")) {
     const trimmed = entry.trim();
     if (!trimmed) continue;
@@ -689,7 +434,8 @@ function getAllowedOrigins() {
   }
   return set;
 }
-async function startServer() {
+async function createApp(options) {
+  const shouldServeFrontend = options?.serveFrontend ?? !isVercel;
   await syncFromSupabase(true).catch(() => {
   });
   const app = express();
@@ -775,7 +521,7 @@ async function startServer() {
         if (createErr || !created.user) {
           return res.status(400).json({ error: createErr?.message || "Failed to create team account" });
         }
-        await supabaseAdmin.from("team_roles").upsert(
+        const { error: roleErr } = await supabaseAdmin.from("team_roles").upsert(
           {
             user_id: created.user.id,
             email: cleanEmail,
@@ -784,6 +530,9 @@ async function startServer() {
           },
           { onConflict: "user_id" }
         );
+        if (roleErr) {
+          console.warn("team_roles upsert warning:", roleErr.message);
+        }
         return res.status(201).json({
           success: true,
           user: {
@@ -1067,10 +816,12 @@ async function startServer() {
     requireRole("admin", "developer"),
     async (req, res) => {
       const incoming = stripSensitiveSettingsFields(req.body || {});
-      const updated = stripSensitiveSettingsFields({
-        ...settingsMemory,
-        ...incoming
-      });
+      const updated = normalizeDispatchSettings(
+        stripSensitiveSettingsFields({
+          ...settingsMemory,
+          ...incoming
+        })
+      );
       const db = getDbClient(req);
       if (db) {
         const { error } = await db.from("store_settings").upsert({
@@ -1083,6 +834,7 @@ async function startServer() {
         }
       }
       settingsMemory = updated;
+      pendingOrderCounterOverride = null;
       return res.json({ success: true, settings: updated });
     }
   );
@@ -1104,7 +856,7 @@ async function startServer() {
   );
   app.post("/api/orders", async (req, res) => {
     try {
-      await syncFromSupabase();
+      await syncFromSupabase(true);
       const body = req.body;
       const customer = body.customer;
       if (!customer || !customer.name?.trim() || !customer.phone?.trim()) {
@@ -1122,7 +874,6 @@ async function startServer() {
       const lang = body.language === "ru" || body.language === "en" ? body.language : "tj";
       const menuById = new Map(menuItemsMemory.map((m) => [m.id, m]));
       const verifiedItems = [];
-      const itemNotesMap = {};
       for (const reqItem of body.items) {
         const qty = Number(reqItem?.quantity);
         if (!reqItem?.id || !Number.isInteger(qty) || qty < 1 || qty > 100) {
@@ -1142,12 +893,25 @@ async function startServer() {
           quantity: qty,
           subtotal: Math.round(unitPrice * qty * 100) / 100
         });
-        if (typeof reqItem.notes === "string" && reqItem.notes.trim()) {
-          itemNotesMap[catalogItem.id] = reqItem.notes.trim().slice(0, 300);
-        }
       }
       const authoritativeTotal = Math.round(verifiedItems.reduce((sum, it) => sum + it.subtotal, 0) * 100) / 100;
-      const currentCounter = typeof settingsMemory.nextOrderNumber === "number" && settingsMemory.nextOrderNumber > 0 ? settingsMemory.nextOrderNumber : 1;
+      const db = supabaseAdmin || supabasePublic;
+      let currentCounter = typeof settingsMemory.nextOrderNumber === "number" && settingsMemory.nextOrderNumber > 0 ? settingsMemory.nextOrderNumber : 1;
+      if (pendingOrderCounterOverride !== null && pendingOrderCounterOverride > currentCounter) {
+        currentCounter = pendingOrderCounterOverride;
+      }
+      let allocatedViaRpc = false;
+      if (db) {
+        try {
+          const { data: rpcNum, error: rpcErr } = await db.rpc("allocate_next_order_number");
+          if (!rpcErr && typeof rpcNum === "number" && rpcNum >= 1) {
+            currentCounter = rpcNum;
+            allocatedViaRpc = true;
+            pendingOrderCounterOverride = null;
+          }
+        } catch {
+        }
+      }
       const isSixDigits = settingsMemory.orderNumberFormat === "6-digits";
       const padded = isSixDigits ? String(currentCounter).padStart(6, "0") : String(currentCounter).padStart(4, "0");
       const prefix = settingsMemory.orderNumberPrefix || "#";
@@ -1173,7 +937,6 @@ async function startServer() {
         channel: validChannel,
         status: "new"
       };
-      const db = supabaseAdmin || supabasePublic;
       if (db) {
         const { error: insertErr } = await db.from("orders").insert(orderToRow(newOrder));
         if (insertErr) {
@@ -1184,31 +947,29 @@ async function startServer() {
         ...settingsMemory,
         nextOrderNumber: nextCounter
       });
-      if (supabaseAdmin) {
-        try {
-          await supabaseAdmin.from("store_settings").upsert({
-            id: "store_config",
-            data: settingsMemory,
-            updated_at: (/* @__PURE__ */ new Date()).toISOString()
-          });
-        } catch {
+      if (!allocatedViaRpc) {
+        if (supabaseAdmin) {
+          try {
+            const { error: upsertErr } = await supabaseAdmin.from("store_settings").upsert({
+              id: "store_config",
+              data: settingsMemory,
+              updated_at: (/* @__PURE__ */ new Date()).toISOString()
+            });
+            pendingOrderCounterOverride = upsertErr ? nextCounter : null;
+          } catch {
+            pendingOrderCounterOverride = nextCounter;
+          }
+        } else {
+          pendingOrderCounterOverride = nextCounter;
         }
       }
       ordersMemory = [newOrder, ...ordersMemory.filter((o) => o.id !== newOrder.id)];
       const trackingToken = signOrderId(newOrder.id);
-      const dispatched = await dispatchOrderToMessengers(
-        newOrder,
-        validChannel,
-        settingsMemory.currency || "TJS",
-        itemNotesMap,
-        settingsMemory.whatsappNumber
-      );
       return res.status(201).json({
         success: true,
         order: newOrder,
         trackingToken,
-        nextOrderNumber: nextCounter,
-        dispatched
+        nextOrderNumber: nextCounter
       });
     } catch (err) {
       console.error("Order creation error:", err);
@@ -1297,149 +1058,73 @@ async function startServer() {
       return res.json({ success: true, id });
     }
   );
-  app.get(
-    "/api/notifications/status",
-    requireAuth,
-    requireRole("staff", "admin", "developer"),
-    (_req, res) => {
-      const cfg = notificationConfigMemory;
-      const telegramConfigured = Boolean(cfg.telegramBotToken.trim() && cfg.telegramChatId.trim());
-      const whatsappConfigured = cfg.whatsappProvider === "callmebot" && Boolean(cfg.callmebotApiKey.trim()) || cfg.whatsappProvider === "meta_cloud" && Boolean(cfg.metaAccessToken.trim() && cfg.metaPhoneNumberId.trim()) || cfg.whatsappProvider === "webhook" && Boolean(cfg.webhookUrl.trim());
-      res.json({
-        telegramConfigured,
-        whatsappConfigured,
-        whatsappProvider: cfg.whatsappProvider,
-        webhookConfigured: Boolean(cfg.webhookUrl.trim())
-      });
-    }
-  );
-  app.get(
-    "/api/notifications/config",
-    requireAuth,
-    requireRole("admin", "developer"),
-    (_req, res) => {
-      res.setHeader("Cache-Control", "no-store");
-      res.json(toNotificationConfigView(notificationConfigMemory));
-    }
-  );
-  app.put(
-    "/api/notifications/config",
-    requireAuth,
-    requireRole("admin", "developer"),
-    (req, res) => {
-      const body = req.body;
-      const current = notificationConfigMemory;
-      notificationConfigMemory = {
-        telegramBotToken: body.clearTelegramToken ? "" : body.telegramBotToken && !body.telegramBotToken.includes("\u2022") ? body.telegramBotToken.trim() : current.telegramBotToken,
-        telegramChatId: body.telegramChatId !== void 0 ? body.telegramChatId.trim() : current.telegramChatId,
-        whatsappProvider: body.whatsappProvider || current.whatsappProvider,
-        whatsappTargetNumber: body.whatsappTargetNumber !== void 0 ? body.whatsappTargetNumber.trim() : current.whatsappTargetNumber,
-        callmebotApiKey: body.clearCallmebotKey ? "" : body.callmebotApiKey && !body.callmebotApiKey.includes("\u2022") ? body.callmebotApiKey.trim() : current.callmebotApiKey,
-        metaPhoneNumberId: body.metaPhoneNumberId !== void 0 ? body.metaPhoneNumberId.trim() : current.metaPhoneNumberId,
-        metaAccessToken: body.clearMetaToken ? "" : body.metaAccessToken && !body.metaAccessToken.includes("\u2022") ? body.metaAccessToken.trim() : current.metaAccessToken,
-        webhookUrl: body.webhookUrl !== void 0 ? body.webhookUrl.trim() : current.webhookUrl,
-        alsoNotifyTelegram: body.alsoNotifyTelegram !== void 0 ? body.alsoNotifyTelegram : current.alsoNotifyTelegram
-      };
-      res.json({ success: true, config: toNotificationConfigView(notificationConfigMemory) });
-    }
-  );
-  app.post(
-    "/api/notifications/test",
-    requireAuth,
-    requireRole("admin", "developer"),
-    async (req, res) => {
-      const { channel } = req.body;
-      const cfg = notificationConfigMemory;
-      const sampleOrder = {
-        id: `test-${Date.now()}`,
-        orderNumber: "#TEST-001",
-        createdAt: (/* @__PURE__ */ new Date()).toISOString(),
-        customer: {
-          name: "Test Customer / \u041C\u0438\u0437\u043E\u04B7",
-          phone: "+992 90 000 0000",
-          deliveryType: "delivery",
-          addressOrTable: "45 Rudaki Ave, Dushanbe",
-          orderNotes: "Extra hot sauce",
-          paymentMethod: "cash"
-        },
-        items: [
-          { id: "test-1", name: "Double Smash Burger", price: 45, quantity: 2, subtotal: 90 },
-          { id: "test-2", name: "Crispy Fries", price: 18, quantity: 1, subtotal: 18 }
-        ],
-        total: 108,
-        channel: channel === "whatsapp" ? "whatsapp" : "telegram",
-        status: "new"
-      };
-      const currency = settingsMemory?.currency || "TJS";
-      if (channel === "telegram") {
-        if (!cfg.telegramBotToken.trim() || !cfg.telegramChatId.trim()) {
-          return res.status(400).json({
-            ok: false,
-            message: "Please save both Telegram Bot Token and Chat ID first."
-          });
-        }
-        const html = formatOrderTelegramHtml(sampleOrder, currency);
-        const out2 = await sendTelegramBotMessage(cfg.telegramBotToken, cfg.telegramChatId, html);
-        return res.json({ ok: out2.sent, message: out2.message });
-      }
-      const plainText = formatOrderReceiptText(sampleOrder, currency);
-      const out = await sendWhatsAppProviderMessage(cfg, plainText);
-      return res.json({ ok: out.sent, message: out.message });
-    }
-  );
   app.all("/api/*", (_req, res) => {
     res.status(404).json({ error: "API route not found" });
   });
-  if (!isProduction) {
-    const { createServer: createViteServer } = await import("vite");
-    const vite = await createViteServer({
-      server: {
-        middlewareMode: true,
-        hmr: false
-      },
-      appType: "spa"
-    });
-    app.use(async (req, res, next) => {
-      if (req.method === "GET" && !req.path.startsWith("/api") && !req.path.startsWith("/src") && !req.path.startsWith("/@") && !req.path.includes(".") && req.headers.accept?.includes("text/html")) {
-        try {
-          const indexPath = path.resolve(process.cwd(), "index.html");
-          let template = fs.readFileSync(indexPath, "utf-8");
-          template = await vite.transformIndexHtml(req.originalUrl, template);
-          template = injectPublicConfigIntoHtml(template);
-          return res.status(200).set({ "Content-Type": "text/html" }).end(template);
-        } catch (e) {
-          return next(e);
+  if (shouldServeFrontend) {
+    if (!isProduction) {
+      const vitePkg = "vite";
+      const { createServer: createViteServer } = await import(
+        /* @vite-ignore */
+        vitePkg
+      );
+      const vite = await createViteServer({
+        server: {
+          middlewareMode: true,
+          hmr: false
+        },
+        appType: "spa"
+      });
+      app.use(async (req, res, next) => {
+        if (req.method === "GET" && !req.path.startsWith("/api") && !req.path.startsWith("/src") && !req.path.startsWith("/@") && !req.path.includes(".") && req.headers.accept?.includes("text/html")) {
+          try {
+            const indexPath = path.resolve(process.cwd(), "index.html");
+            let template = fs.readFileSync(indexPath, "utf-8");
+            template = await vite.transformIndexHtml(req.originalUrl, template);
+            template = injectPublicConfigIntoHtml(template);
+            return res.status(200).set({ "Content-Type": "text/html" }).end(template);
+          } catch (e) {
+            return next(e);
+          }
         }
-      }
-      return next();
-    });
-    app.use(vite.middlewares);
-    console.log("[Dev] Vite middlewares mounted to Express app");
-  } else {
-    const distPath = path.resolve(__dirname, "..", "dist");
-    const fallbackDistPath = path.resolve(process.cwd(), "dist");
-    const resolvedDistPath = fs.existsSync(distPath) ? distPath : fallbackDistPath;
-    const indexHtmlPath = path.join(resolvedDistPath, "index.html");
-    const rawHtml = fs.existsSync(indexHtmlPath) ? fs.readFileSync(indexHtmlPath, "utf-8") : "";
-    app.use(express.static(resolvedDistPath, { index: false }));
-    app.use("/assets", (_req, res) => {
-      res.status(404).type("text/plain").send("Asset not found");
-    });
-    app.get("*", (_req, res) => {
-      if (!rawHtml) {
-        return res.status(500).send("Production build missing. Run npm run build.");
-      }
-      res.setHeader("Cache-Control", "no-store");
-      return res.type("html").send(injectPublicConfigIntoHtml(rawHtml));
-    });
+        return next();
+      });
+      app.use(vite.middlewares);
+      console.log("[Dev] Vite middlewares mounted to Express app");
+    } else {
+      const distPath = path.resolve(__dirname, "..", "dist");
+      const fallbackDistPath = path.resolve(process.cwd(), "dist");
+      const resolvedDistPath = fs.existsSync(distPath) ? distPath : fallbackDistPath;
+      const indexHtmlPath = path.join(resolvedDistPath, "index.html");
+      const rawHtml = fs.existsSync(indexHtmlPath) ? fs.readFileSync(indexHtmlPath, "utf-8") : "";
+      app.use(express.static(resolvedDistPath, { index: false }));
+      app.use("/assets", (_req, res) => {
+        res.status(404).type("text/plain").send("Asset not found");
+      });
+      app.get("*", (_req, res) => {
+        if (!rawHtml) {
+          return res.status(500).send("Production build missing. Run npm run build.");
+        }
+        res.setHeader("Cache-Control", "no-store");
+        return res.type("html").send(injectPublicConfigIntoHtml(rawHtml));
+      });
+    }
   }
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(
-      `\u{1F680} Efendi Full-Stack Server (${isProduction ? "production" : "development"}) running on http://0.0.0.0:${PORT}`
-    );
+  return app;
+}
+var isDirectExecution = !isVercel && Boolean(process.argv[1]) && path.resolve(process.argv[1]) === path.resolve(__filename);
+if (isDirectExecution) {
+  createApp({ serveFrontend: true }).then((app) => {
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(
+        `\u{1F680} Efendi Full-Stack Server (${isProduction ? "production" : "development"}) running on http://0.0.0.0:${PORT}`
+      );
+    });
+  }).catch((err) => {
+    console.error("Failed to start server:", err);
+    process.exit(1);
   });
 }
-startServer().catch((err) => {
-  console.error("Failed to start server:", err);
-  process.exit(1);
-});
+export {
+  createApp
+};

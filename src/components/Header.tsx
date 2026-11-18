@@ -177,8 +177,13 @@ export const Header: React.FC<HeaderProps> = ({ onOpenQR, onOpenAdmin, onOpenMyO
           >
             <div className="w-11 h-11 sm:w-14 sm:h-14 shrink-0 rounded-2xl bg-white/50 dark:bg-white/[0.06] border border-white/70 dark:border-white/10 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] transform transition-transform hover:scale-105 active:scale-95">
               <img
-                src="/assets/aistudio/a_clean_png_style_logo_image_with_transparent_back_dd231807.png"
+                src="/assets/aistudio/a_clean_png_style_logo_image_with_transparent_back_dd231807.webp"
                 alt={storeSettings.name}
+                width={56}
+                height={56}
+                loading="eager"
+                decoding="async"
+                fetchPriority="high"
                 className="w-full h-full object-contain"
               />
             </div>

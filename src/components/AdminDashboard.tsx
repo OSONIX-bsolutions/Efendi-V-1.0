@@ -3,6 +3,7 @@ import { useStore } from '../context/StoreContext';
 import { t } from '../i18n/translations';
 import { AdminRole, Category, MenuItem, OrderStatus, SavedOrder, StoreSettings } from '../types';
 import { getSupabaseProjectRef, supabaseService } from '../supabase';
+import { normalizeTelegramUsername, normalizeWhatsAppNumber } from '../utils/dispatch';
 import { resolveMenuItemImage, getFallbackImageForCategory } from '../utils/imageFallback';
 import * as XLSX from 'xlsx';
 import confetti from 'canvas-confetti';
@@ -710,9 +711,26 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
     setEditingCategory(null);
   };
 
-  const handleSaveSettings = (e: React.FormEvent) => {
+  const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!settingsForm.whatsappNumber.trim() && !settingsForm.telegramUsername.trim()) {
+    const cleanedWa = normalizeWhatsAppNumber(settingsForm.whatsappNumber);
+    const cleanedTg = normalizeTelegramUsername(settingsForm.telegramUsername);
+
+    if (
+      settingsForm.whatsappNumber.trim() &&
+      cleanedWa.replace(/[^0-9]/g, '').length < 7
+    ) {
+      setSettingsError(
+        language === 'tj'
+          ? 'Рақами WhatsApp нодуруст аст (масалан +992900123456)'
+          : language === 'ru'
+          ? 'Некорректный номер WhatsApp (например +992900123456)'
+          : 'Please enter a valid WhatsApp phone number (e.g. +992900123456)'
+      );
+      return;
+    }
+
+    if (settingsForm.directOrderingOnly === false && !cleanedWa && !cleanedTg) {
       setSettingsError(
         language === 'tj'
           ? 'Ҳадди ақал рақами WhatsApp ё Username-и Telegram-ро ворид кунед!'
@@ -722,9 +740,25 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
       );
       return;
     }
+
     setSettingsError('');
     setIsSettingsFormDirty(false);
-    updateStoreSettings(settingsForm);
+    setIsDevDispatchDirty(false);
+    setDevWhatsappInput(cleanedWa);
+    setDevTelegramInput(cleanedTg);
+
+    const nextSettings: StoreSettings = {
+      ...settingsForm,
+      whatsappNumber: cleanedWa,
+      telegramUsername: cleanedTg,
+    };
+    setSettingsForm(nextSettings);
+
+    const res = await updateStoreSettings(nextSettings);
+    if (!res.ok) {
+      setSettingsError(res.error || 'Failed to save store settings');
+      return;
+    }
     setSettingsSavedFeedback(true);
     setTimeout(() => setSettingsSavedFeedback(false), 2500);
   };
@@ -934,7 +968,21 @@ create policy "Admin delete orders" on public.orders for delete
 
   const handleCreateTeamMember = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newTeamEmail.trim() || !newTeamPassword) return;
+    const cleanEmail = newTeamEmail.trim().toLowerCase();
+    if (!cleanEmail || !newTeamPassword) return;
+    if (newTeamPassword.length < 8) {
+      setTeamMemberFeedback({
+        ok: false,
+        message:
+          language === 'tj'
+            ? 'Парол бояд ҳадди ақал 8 аломат дошта бошад.'
+            : language === 'ru'
+            ? 'Пароль должен содержать минимум 8 символов.'
+            : 'Password must be at least 8 characters long.',
+      });
+      return;
+    }
+
     setCreatingTeamMember(true);
     setTeamMemberFeedback(null);
     try {
@@ -949,18 +997,34 @@ create policy "Admin delete orders" on public.orders for delete
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          email: newTeamEmail.trim(),
+          email: cleanEmail,
           password: newTeamPassword,
           role: newTeamRole,
         }),
       });
-      const json = await res.json();
+
+      const rawText = await res.text();
+      if (rawText.trim().startsWith('<')) {
+        throw new Error(
+          `Backend endpoint /api/admin/users returned HTML (HTTP ${res.status}) instead of JSON. Please push the latest api/index.ts & vercel.json updates and redeploy.`
+        );
+      }
+
+      let json: any = null;
+      if (rawText.trim()) {
+        try {
+          json = JSON.parse(rawText);
+        } catch {
+          throw new Error(`Invalid server response (${res.status}): ${rawText.slice(0, 120)}`);
+        }
+      }
+
       if (!res.ok) {
         throw new Error(json?.error || `Request failed (${res.status})`);
       }
       setTeamMemberFeedback({
         ok: true,
-        message: `Provisioned confirmed team account for ${json.user?.email || newTeamEmail} with role "${newTeamRole}".`,
+        message: `Provisioned confirmed team account for ${json?.user?.email || cleanEmail} with role "${newTeamRole}".`,
       });
       setNewTeamEmail('');
       setNewTeamPassword('');
@@ -993,6 +1057,88 @@ create policy "Admin delete orders" on public.orders for delete
     updateStoreSettings(updatedSettings);
   };
 
+  // DEVELOPER: Editable WhatsApp & Telegram Order Dispatch Accounts
+  const [devWhatsappInput, setDevWhatsappInput] = useState<string>(
+    () => storeSettings.whatsappNumber || ''
+  );
+  const [devTelegramInput, setDevTelegramInput] = useState<string>(
+    () => storeSettings.telegramUsername || ''
+  );
+  const [isDevDispatchDirty, setIsDevDispatchDirty] = useState(false);
+  const [savingDevDispatch, setSavingDevDispatch] = useState(false);
+  const [devDispatchFeedback, setDevDispatchFeedback] = useState<{
+    ok: boolean;
+    message: string;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!isDevDispatchDirty) {
+      setDevWhatsappInput(storeSettings.whatsappNumber || '');
+      setDevTelegramInput(storeSettings.telegramUsername || '');
+    }
+  }, [storeSettings.whatsappNumber, storeSettings.telegramUsername, isDevDispatchDirty]);
+
+  const handleSaveDevDispatchAccounts = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanedWa = normalizeWhatsAppNumber(devWhatsappInput);
+    const cleanedTg = normalizeTelegramUsername(devTelegramInput);
+
+    if (
+      devWhatsappInput.trim() &&
+      cleanedWa.replace(/[^0-9]/g, '').length < 7
+    ) {
+      setDevDispatchFeedback({
+        ok: false,
+        message:
+          language === 'tj'
+            ? 'Лутфан рақами дурусти WhatsApp-ро ворид кунед (масалан +992900123456).'
+            : language === 'ru'
+            ? 'Укажите корректный номер WhatsApp (например +992900123456).'
+            : 'Please enter a valid WhatsApp phone number (e.g. +992900123456).',
+      });
+      return;
+    }
+
+    setSavingDevDispatch(true);
+    setDevDispatchFeedback(null);
+    try {
+      const updatedSettings: StoreSettings = {
+        ...storeSettings,
+        whatsappNumber: cleanedWa,
+        telegramUsername: cleanedTg,
+      };
+      const result = await updateStoreSettings(updatedSettings);
+      if (!result.ok) {
+        setDevDispatchFeedback({
+          ok: false,
+          message: result.error || 'Failed to save dispatch accounts to database.',
+        });
+        return;
+      }
+
+      setDevWhatsappInput(cleanedWa);
+      setDevTelegramInput(cleanedTg);
+      setIsDevDispatchDirty(false);
+      setSettingsForm((prev) => ({
+        ...prev,
+        whatsappNumber: cleanedWa,
+        telegramUsername: cleanedTg,
+      }));
+      setDevDispatchFeedback({
+        ok: true,
+        message:
+          language === 'tj'
+            ? 'Ҳисобҳои WhatsApp ва Telegram дар пойгоҳи маълумот сабт шуданд!'
+            : language === 'ru'
+            ? 'Аккаунты WhatsApp и Telegram сохранены в базе данных!'
+            : 'WhatsApp & Telegram dispatch accounts saved to database!',
+      });
+      setTimeout(() => setDevDispatchFeedback(null), 3000);
+    } finally {
+      setSavingDevDispatch(false);
+    }
+  };
+
   // ADMIN & DEVELOPER: Toggle Dispatch Channels (WhatsApp, Telegram)
   const handleToggleDispatchChannel = (channel: 'whatsapp' | 'telegram') => {
     const isWa = storeSettings.whatsappEnabled !== false;
@@ -1010,8 +1156,17 @@ create policy "Admin delete orders" on public.orders for delete
     const orderChannel: 'whatsapp' | 'telegram' | 'both' =
       newWa && newTg ? 'both' : newWa ? 'whatsapp' : newTg ? 'telegram' : 'both';
 
+    const latestWa = isDevDispatchDirty
+      ? normalizeWhatsAppNumber(devWhatsappInput)
+      : storeSettings.whatsappNumber;
+    const latestTg = isDevDispatchDirty
+      ? normalizeTelegramUsername(devTelegramInput)
+      : storeSettings.telegramUsername;
+
     setSettingsForm((prev) => ({
       ...prev,
+      whatsappNumber: latestWa,
+      telegramUsername: latestTg,
       whatsappEnabled: newWa,
       telegramEnabled: newTg,
       orderChannel,
@@ -1019,6 +1174,8 @@ create policy "Admin delete orders" on public.orders for delete
 
     updateStoreSettings({
       ...storeSettings,
+      whatsappNumber: latestWa,
+      telegramUsername: latestTg,
       whatsappEnabled: newWa,
       telegramEnabled: newTg,
       orderChannel,
@@ -1028,12 +1185,23 @@ create policy "Admin delete orders" on public.orders for delete
   // ADMIN & DEVELOPER: Toggle Direct In-App Ordering (Single Button vs WhatsApp/Telegram redirect buttons)
   const handleToggleDirectOrdering = () => {
     const nextDirect = !(storeSettings.directOrderingOnly !== false);
+    const latestWa = isDevDispatchDirty
+      ? normalizeWhatsAppNumber(devWhatsappInput)
+      : storeSettings.whatsappNumber;
+    const latestTg = isDevDispatchDirty
+      ? normalizeTelegramUsername(devTelegramInput)
+      : storeSettings.telegramUsername;
+
     setSettingsForm((prev) => ({
       ...prev,
+      whatsappNumber: latestWa,
+      telegramUsername: latestTg,
       directOrderingOnly: nextDirect,
     }));
     updateStoreSettings({
       ...storeSettings,
+      whatsappNumber: latestWa,
+      telegramUsername: latestTg,
       directOrderingOnly: nextDirect,
     });
   };
@@ -2516,6 +2684,13 @@ create policy "Admin delete orders" on public.orders for delete
                 </div>
               </div>
 
+              {settingsError && (
+                <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-400 text-xs font-semibold flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 shrink-0" />
+                  <span>{settingsError}</span>
+                </div>
+              )}
+
               <div className="pt-2 flex items-center gap-3">
                 <button
                   type="submit"
@@ -2642,11 +2817,11 @@ create policy "Admin delete orders" on public.orders for delete
                   <span>Dispatch Channels (Order Redirection)</span>
                 </h4>
                 <p className="text-xs text-neutral-500">
-                  Enable or disable dispatch channels for customer checkouts. When enabled, customers can submit orders through that platform.
+                  Configure destination WhatsApp number and Telegram account for order redirects, and enable or disable checkout channels.
                 </p>
               </div>
 
-              <div className="p-4 rounded-2xl bg-neutral-50 dark:bg-neutral-800/60 border border-neutral-200/70 dark:border-neutral-700/70 flex items-center justify-between">
+              <div className="p-4 rounded-2xl bg-neutral-50 dark:bg-neutral-800/60 border border-neutral-200/70 dark:border-neutral-700/70 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold shrink-0">
                     <ShoppingBag className="w-5 h-5" />
@@ -2671,59 +2846,150 @@ create policy "Admin delete orders" on public.orders for delete
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {/* WhatsApp Dispatch */}
-                <div className="p-4 rounded-2xl bg-neutral-50 dark:bg-neutral-800/60 border border-neutral-200/70 dark:border-neutral-700/70 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-[#25D366]/15 text-[#25D366] flex items-center justify-center font-bold shrink-0">
-                      <MessageCircle className="w-5 h-5 fill-current" />
+              <form onSubmit={handleSaveDevDispatchAccounts} className="space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* WhatsApp Dispatch */}
+                  <div className="p-4 rounded-2xl bg-neutral-50 dark:bg-neutral-800/60 border border-neutral-200/70 dark:border-neutral-700/70 space-y-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-10 h-10 rounded-xl bg-[#25D366]/15 text-[#25D366] flex items-center justify-center font-bold shrink-0">
+                          <MessageCircle className="w-5 h-5 fill-current" />
+                        </div>
+                        <div className="min-w-0">
+                          <span className="font-bold text-xs block text-neutral-900 dark:text-white">WhatsApp Dispatch</span>
+                          <span className="text-[11px] text-neutral-500 dark:text-neutral-400 font-mono truncate block">
+                            {storeSettings.whatsappNumber || 'Not set'}
+                          </span>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleToggleDispatchChannel('whatsapp')}
+                        className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer shrink-0 ${
+                          storeSettings.whatsappEnabled !== false
+                            ? 'bg-emerald-500 text-white shadow-xs hover:bg-emerald-600'
+                            : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-500 hover:bg-neutral-300'
+                        }`}
+                      >
+                        {storeSettings.whatsappEnabled !== false ? 'Enabled' : 'Disabled'}
+                      </button>
                     </div>
+
                     <div>
-                      <span className="font-bold text-xs block text-neutral-900 dark:text-white">WhatsApp Dispatch</span>
-                      <span className="text-[11px] text-neutral-500 dark:text-neutral-400 font-mono">
-                        {storeSettings.whatsappNumber || 'Not set'}
-                      </span>
+                      <label className="block text-[11px] font-bold text-neutral-600 dark:text-neutral-400 mb-1">
+                        {language === 'tj'
+                          ? 'Рақами WhatsApp (+992...)'
+                          : language === 'ru'
+                          ? 'Номер WhatsApp (+992...)'
+                          : 'WhatsApp Number (+992...)'}
+                      </label>
+                      <input
+                        type="tel"
+                        value={devWhatsappInput}
+                        onChange={(e) => {
+                          setIsDevDispatchDirty(true);
+                          setDevDispatchFeedback(null);
+                          setDevWhatsappInput(e.target.value);
+                        }}
+                        placeholder="+992900123456"
+                        className="w-full px-3 py-2 rounded-xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 text-xs font-mono text-neutral-900 dark:text-white focus:outline-none focus:border-emerald-500 transition-colors"
+                      />
                     </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => handleToggleDispatchChannel('whatsapp')}
-                    className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
-                      storeSettings.whatsappEnabled !== false
-                        ? 'bg-emerald-500 text-white shadow-xs hover:bg-emerald-600'
-                        : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-500 hover:bg-neutral-300'
-                    }`}
-                  >
-                    {storeSettings.whatsappEnabled !== false ? 'Enabled' : 'Disabled'}
-                  </button>
+
+                  {/* Telegram Dispatch */}
+                  <div className="p-4 rounded-2xl bg-neutral-50 dark:bg-neutral-800/60 border border-neutral-200/70 dark:border-neutral-700/70 space-y-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-10 h-10 rounded-xl bg-[#0088cc]/15 text-[#0088cc] flex items-center justify-center font-bold shrink-0">
+                          <Send className="w-5 h-5" />
+                        </div>
+                        <div className="min-w-0">
+                          <span className="font-bold text-xs block text-neutral-900 dark:text-white">Telegram Dispatch</span>
+                          <span className="text-[11px] text-neutral-500 dark:text-neutral-400 font-mono truncate block">
+                            {storeSettings.telegramUsername ? `@${storeSettings.telegramUsername}` : 'Not set'}
+                          </span>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleToggleDispatchChannel('telegram')}
+                        className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer shrink-0 ${
+                          storeSettings.telegramEnabled !== false
+                            ? 'bg-emerald-500 text-white shadow-xs hover:bg-emerald-600'
+                            : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-500 hover:bg-neutral-300'
+                        }`}
+                      >
+                        {storeSettings.telegramEnabled !== false ? 'Enabled' : 'Disabled'}
+                      </button>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-neutral-600 dark:text-neutral-400 mb-1">
+                        {language === 'tj'
+                          ? 'Аккаунти Telegram (@username ё https://t.me/...)'
+                          : language === 'ru'
+                          ? 'Аккаунт Telegram (@username или https://t.me/...)'
+                          : 'Telegram Account (@username or https://t.me/...)'}
+                      </label>
+                      <div className="flex items-center">
+                        <span className="px-2.5 py-2 rounded-l-xl bg-neutral-100 dark:bg-neutral-800 border border-r-0 border-neutral-200 dark:border-neutral-700 text-neutral-500 dark:text-neutral-400 text-xs font-mono select-none">
+                          @
+                        </span>
+                        <input
+                          type="text"
+                          value={devTelegramInput}
+                          onChange={(e) => {
+                            setIsDevDispatchDirty(true);
+                            setDevDispatchFeedback(null);
+                            setDevTelegramInput(e.target.value);
+                          }}
+                          placeholder="efendi_orders"
+                          className="w-full px-3 py-2 rounded-r-xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 text-xs font-mono text-neutral-900 dark:text-white focus:outline-none focus:border-sky-500 transition-colors"
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
-                {/* Telegram Dispatch */}
-                <div className="p-4 rounded-2xl bg-neutral-50 dark:bg-neutral-800/60 border border-neutral-200/70 dark:border-neutral-700/70 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-[#0088cc]/15 text-[#0088cc] flex items-center justify-center font-bold shrink-0">
-                      <Send className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <span className="font-bold text-xs block text-neutral-900 dark:text-white">Telegram Dispatch</span>
-                      <span className="text-[11px] text-neutral-500 dark:text-neutral-400 font-mono">
-                        @{storeSettings.telegramUsername || 'Not set'}
-                      </span>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => handleToggleDispatchChannel('telegram')}
-                    className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
-                      storeSettings.telegramEnabled !== false
-                        ? 'bg-emerald-500 text-white shadow-xs hover:bg-emerald-600'
-                        : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-500 hover:bg-neutral-300'
+                {devDispatchFeedback && (
+                  <div
+                    className={`p-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 ${
+                      devDispatchFeedback.ok
+                        ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30'
+                        : 'bg-rose-500/10 text-rose-700 dark:text-rose-300 border border-rose-500/30'
                     }`}
                   >
-                    {storeSettings.telegramEnabled !== false ? 'Enabled' : 'Disabled'}
+                    {devDispatchFeedback.ok ? (
+                      <Check className="w-4 h-4 shrink-0 text-emerald-500" />
+                    ) : (
+                      <AlertTriangle className="w-4 h-4 shrink-0 text-rose-500" />
+                    )}
+                    <span>{devDispatchFeedback.message}</span>
+                  </div>
+                )}
+
+                <div className="flex items-center justify-end gap-3 pt-1">
+                  <button
+                    type="submit"
+                    disabled={savingDevDispatch}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 disabled:opacity-60 text-white font-bold text-xs shadow-sm transition-all cursor-pointer"
+                  >
+                    {savingDevDispatch ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <Check className="w-3.5 h-3.5" />
+                    )}
+                    <span>
+                      {language === 'tj'
+                        ? 'Сабти ҳисобҳои ирсол'
+                        : language === 'ru'
+                        ? 'Сохранить каналы отправки'
+                        : 'Save Dispatch Accounts'}
+                    </span>
                   </button>
                 </div>
-              </div>
+              </form>
             </div>
 
             {/* Section: Customer CMS Button Visibility */}
@@ -3423,12 +3689,16 @@ create policy "Admin delete orders" on public.orders for delete
 
                   <div>
                     <label className="block text-[11px] font-bold text-neutral-600 dark:text-neutral-400 mb-1">
-                      {language === 'tj' ? 'Парол' : language === 'ru' ? 'Пароль' : 'Password'}
+                      {language === 'tj'
+                        ? 'Парол (ҳадди ақал 8 аломат)'
+                        : language === 'ru'
+                        ? 'Пароль (минимум 8 символов)'
+                        : 'Password (min 8 chars)'}
                     </label>
                     <input
                       type="password"
                       required
-                      minLength={6}
+                      minLength={8}
                       value={newTeamPassword}
                       onChange={(e) => setNewTeamPassword(e.target.value)}
                       placeholder="••••••••"

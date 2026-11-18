@@ -1,6 +1,7 @@
 import React from 'react';
 import { useStore } from '../context/StoreContext';
 import { t } from '../i18n/translations';
+import { buildTelegramDispatchUrl, buildWhatsAppDispatchUrl } from '../utils/dispatch';
 import {
   MapPin,
   Clock,
@@ -55,7 +56,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenAdmin }) => {
             <div className="flex items-center gap-3">
               <div className="w-14 h-14 sm:w-16 sm:h-16 shrink-0 transform transition-transform hover:scale-105">
                 <img
-                  src="/assets/aistudio/a_clean_png_style_logo_image_with_transparent_back_dd231807.png"
+                  src="/assets/aistudio/a_clean_png_style_logo_image_with_transparent_back_dd231807.webp"
                   alt={storeSettings.name}
                   className="w-full h-full object-contain"
                 />
@@ -143,9 +144,9 @@ export const Footer: React.FC<FooterProps> = ({ onOpenAdmin }) => {
               </span>
               <div className="flex items-center gap-2">
                 {/* WhatsApp */}
-                {storeSettings.whatsappEnabled !== false && storeSettings.whatsappNumber?.trim() && (
+                {storeSettings.whatsappEnabled !== false && buildWhatsAppDispatchUrl(storeSettings.whatsappNumber) && (
                   <a
-                    href={`https://wa.me/${storeSettings.whatsappNumber.replace(/[^0-9]/g, '')}`}
+                    href={buildWhatsAppDispatchUrl(storeSettings.whatsappNumber)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="w-9 h-9 rounded-xl bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:bg-[#25D366] hover:text-white dark:hover:bg-[#25D366] dark:hover:text-white flex items-center justify-center transition-colors"
@@ -156,9 +157,9 @@ export const Footer: React.FC<FooterProps> = ({ onOpenAdmin }) => {
                 )}
 
                 {/* Telegram */}
-                {storeSettings.telegramEnabled !== false && storeSettings.telegramUsername?.trim() && (
+                {storeSettings.telegramEnabled !== false && buildTelegramDispatchUrl(storeSettings.telegramUsername) && (
                   <a
-                    href={`https://t.me/${storeSettings.telegramUsername.replace('@', '')}`}
+                    href={buildTelegramDispatchUrl(storeSettings.telegramUsername)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="w-9 h-9 rounded-xl bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:bg-[#0088cc] hover:text-white dark:hover:bg-[#0088cc] dark:hover:text-white flex items-center justify-center transition-colors"

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useStore } from '../context/StoreContext';
 import { t } from '../i18n/translations';
+import { buildTelegramDispatchUrl, buildWhatsAppDispatchUrl } from '../utils/dispatch';
 import { SavedOrder, OrderStatus } from '../types';
 import {
   X,
@@ -423,7 +424,7 @@ export const MyOrdersModal: React.FC<MyOrdersModalProps> = ({ isOpen, onClose })
                             </span>
                           ) : order.channel === 'whatsapp' ? (
                             <a
-                              href={`https://api.whatsapp.com/send?phone=${storeSettings.whatsappNumber.replace(/[^0-9]/g, '')}`}
+                              href={buildWhatsAppDispatchUrl(storeSettings.whatsappNumber) || '#'}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="inline-flex items-center gap-1.5 text-[#25D366] hover:underline font-bold"
@@ -433,7 +434,7 @@ export const MyOrdersModal: React.FC<MyOrdersModalProps> = ({ isOpen, onClose })
                             </a>
                           ) : (
                             <a
-                              href={`https://t.me/${storeSettings.telegramUsername.replace('@', '')}`}
+                              href={buildTelegramDispatchUrl(storeSettings.telegramUsername) || '#'}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="inline-flex items-center gap-1.5 text-[#0088cc] hover:underline font-bold"

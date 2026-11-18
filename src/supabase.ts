@@ -1,5 +1,6 @@
 import { createClient, RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
 import { AdminRole, Category, MenuItem, OrderStatus, SavedOrder, StoreSettings } from './types';
+import { normalizeTelegramUsername, normalizeWhatsAppNumber } from './utils/dispatch';
 
 declare global {
   interface Window {
@@ -306,19 +307,54 @@ export const supabaseService = {
       .eq('id', 'store_config')
       .single();
     if (error || !data) return null;
-    const parsed = typeof data.data === 'string' ? JSON.parse(data.data) : data.data;
-    return stripSensitiveSettingsFields(parsed);
+    const parsed =
+      data.data && typeof data.data === 'string'
+        ? JSON.parse(data.data)
+        : data.data && typeof data.data === 'object'
+        ? data.data
+        : {};
+    const clean = stripSensitiveSettingsFields<StoreSettings>({
+      ...parsed,
+      ...(data.whatsapp_number ? { whatsappNumber: data.whatsapp_number } : {}),
+      ...(data.telegram_username ? { telegramUsername: data.telegram_username } : {}),
+      ...(typeof data.whatsapp_enabled === 'boolean'
+        ? { whatsappEnabled: data.whatsapp_enabled }
+        : {}),
+      ...(typeof data.telegram_enabled === 'boolean'
+        ? { telegramEnabled: data.telegram_enabled }
+        : {}),
+      ...(typeof data.direct_ordering_only === 'boolean'
+        ? { directOrderingOnly: data.direct_ordering_only }
+        : {}),
+    });
+    return {
+      ...clean,
+      whatsappNumber: clean.whatsappNumber ? normalizeWhatsAppNumber(clean.whatsappNumber) : '',
+      telegramUsername: clean.telegramUsername
+        ? normalizeTelegramUsername(clean.telegramUsername)
+        : '',
+    };
   },
 
-  async setSettings(settings: StoreSettings): Promise<void> {
-    if (!isSupabaseConfigured) return;
-    const clean = stripSensitiveSettingsFields(settings);
+  async setSettings(settings: StoreSettings): Promise<{ ok: boolean; error?: string }> {
+    if (!isSupabaseConfigured) {
+      return { ok: false, error: 'Supabase is not configured' };
+    }
+    const clean = stripSensitiveSettingsFields<StoreSettings>({
+      ...settings,
+      whatsappNumber: normalizeWhatsAppNumber(settings.whatsappNumber),
+      telegramUsername: normalizeTelegramUsername(settings.telegramUsername),
+    });
     const { error } = await supabase.from('store_settings').upsert({
       id: 'store_config',
       data: clean,
       updated_at: new Date().toISOString(),
     });
-    if (error) console.warn('Error saving settings to Supabase:', error);
+    if (error) {
+      console.warn('Error saving settings to Supabase:', error);
+      return { ok: false, error: error.message };
+    }
+    return { ok: true };
   },
 
   subscribeSettings(onUpdate: (settings: StoreSettings) => void): () => void {
@@ -496,7 +532,9 @@ export const supabaseService = {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
       if (!res.ok) return null;
-      const json = await res.json();
+      const text = await res.text();
+      if (!text || text.trim().startsWith('<')) return null;
+      const json = JSON.parse(text);
       if (json?.role === 'staff' || json?.role === 'admin' || json?.role === 'developer') {
         return { user: json.user, role: json.role };
       }

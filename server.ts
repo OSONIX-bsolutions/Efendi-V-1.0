@@ -11,7 +11,7 @@ import {
   DEFAULT_MENU_ITEMS,
   DEFAULT_STORE_SETTINGS,
   INITIAL_ORDERS,
-} from './src/data/defaultData.ts';
+} from './src/data/defaultData';
 import {
   AdminRole,
   Category,
@@ -22,7 +22,7 @@ import {
   OrderStatus,
   SavedOrder,
   StoreSettings,
-} from './src/types.ts';
+} from './src/types';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -91,6 +91,52 @@ function stripSensitiveSettingsFields<T extends Record<string, any>>(settings: T
   if (!settings || typeof settings !== 'object') return settings;
   const { adminPin: _a, staffPin: _s, developerPin: _d, ...clean } = settings;
   return clean as T;
+}
+
+function normalizeWhatsAppNumber(raw?: string | null): string {
+  if (!raw || typeof raw !== 'string') return '';
+  const digits = raw.trim().replace(/[^0-9]/g, '');
+  return digits ? `+${digits}` : '';
+}
+
+function normalizeTelegramUsername(raw?: string | null): string {
+  if (!raw || typeof raw !== 'string') return '';
+  return raw
+    .trim()
+    .replace(/^https?:\/\/(www\.)?(t\.me|telegram\.me)\//i, '')
+    .replace(/^(t\.me|telegram\.me)\//i, '')
+    .split(/[?#]/)[0]
+    .replace(/\/+$/, '')
+    .replace(/^@+/, '')
+    .trim();
+}
+
+function normalizeDispatchSettings<T extends Record<string, any>>(settings: T): T {
+  const whatsappEnabled = settings.whatsappEnabled !== false;
+  const telegramEnabled = settings.telegramEnabled !== false;
+  const orderChannel: 'whatsapp' | 'telegram' | 'both' =
+    whatsappEnabled && telegramEnabled
+      ? 'both'
+      : whatsappEnabled
+      ? 'whatsapp'
+      : telegramEnabled
+      ? 'telegram'
+      : 'both';
+  return {
+    ...settings,
+    whatsappNumber:
+      settings.whatsappNumber !== undefined
+        ? normalizeWhatsAppNumber(settings.whatsappNumber)
+        : '',
+    telegramUsername:
+      settings.telegramUsername !== undefined
+        ? normalizeTelegramUsername(settings.telegramUsername)
+        : '',
+    whatsappEnabled,
+    telegramEnabled,
+    directOrderingOnly: settings.directOrderingOnly !== false,
+    orderChannel,
+  };
 }
 
 // Row <-> Domain mappers (aligned with src/supabase.ts)
@@ -377,13 +423,35 @@ async function syncFromSupabase(force = false) {
     if (!catRes.error && Array.isArray(catRes.data)) {
       categoriesMemory = catRes.data.map(rowToCategory);
     }
-    if (!setRes.error && setRes.data?.data) {
+    if (!setRes.error && setRes.data) {
+      const rowData = setRes.data.data;
       const parsed =
-        typeof setRes.data.data === 'string' ? JSON.parse(setRes.data.data) : setRes.data.data;
-      const merged = stripSensitiveSettingsFields({
-        ...DEFAULT_STORE_SETTINGS,
-        ...parsed,
-      });
+        rowData && typeof rowData === 'string'
+          ? JSON.parse(rowData)
+          : rowData && typeof rowData === 'object'
+          ? rowData
+          : {};
+      const merged = normalizeDispatchSettings(
+        stripSensitiveSettingsFields({
+          ...DEFAULT_STORE_SETTINGS,
+          ...parsed,
+          ...(setRes.data.whatsapp_number
+            ? { whatsappNumber: setRes.data.whatsapp_number }
+            : {}),
+          ...(setRes.data.telegram_username
+            ? { telegramUsername: setRes.data.telegram_username }
+            : {}),
+          ...(typeof setRes.data.whatsapp_enabled === 'boolean'
+            ? { whatsappEnabled: setRes.data.whatsapp_enabled }
+            : {}),
+          ...(typeof setRes.data.telegram_enabled === 'boolean'
+            ? { telegramEnabled: setRes.data.telegram_enabled }
+            : {}),
+          ...(typeof setRes.data.direct_ordering_only === 'boolean'
+            ? { directOrderingOnly: setRes.data.direct_ordering_only }
+            : {}),
+        })
+      );
       if (pendingOrderCounterOverride !== null) {
         const dbNext =
           typeof merged.nextOrderNumber === 'number' && merged.nextOrderNumber > 0
@@ -556,7 +624,7 @@ export async function createApp(options?: { serveFrontend?: boolean }): Promise<
             .json({ error: createErr?.message || 'Failed to create team account' });
         }
 
-        await supabaseAdmin
+        const { error: roleErr } = await supabaseAdmin
           .from('team_roles')
           .upsert(
             {
@@ -567,6 +635,9 @@ export async function createApp(options?: { serveFrontend?: boolean }): Promise<
             },
             { onConflict: 'user_id' }
           );
+        if (roleErr) {
+          console.warn('team_roles upsert warning:', roleErr.message);
+        }
 
         return res.status(201).json({
           success: true,
@@ -905,10 +976,12 @@ export async function createApp(options?: { serveFrontend?: boolean }): Promise<
     requireRole('admin', 'developer'),
     async (req: AuthRequest, res: Response) => {
       const incoming = stripSensitiveSettingsFields(req.body || {});
-      const updated = stripSensitiveSettingsFields({
-        ...settingsMemory,
-        ...incoming,
-      });
+      const updated = normalizeDispatchSettings(
+        stripSensitiveSettingsFields({
+          ...settingsMemory,
+          ...incoming,
+        })
+      );
 
       const db = getDbClient(req);
       if (db) {
@@ -1238,7 +1311,8 @@ export async function createApp(options?: { serveFrontend?: boolean }): Promise<
 
   if (shouldServeFrontend) {
     if (!isProduction) {
-      const { createServer: createViteServer } = await import('vite');
+      const vitePkg = 'vite';
+      const { createServer: createViteServer } = await import(/* @vite-ignore */ vitePkg);
       const vite = await createViteServer({
         server: {
           middlewareMode: true,

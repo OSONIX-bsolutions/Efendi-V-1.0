@@ -1,4 +1,4 @@
-import { Category, MenuItem, SavedOrder, StoreSettings } from '../types.ts';
+import { Category, MenuItem, SavedOrder, StoreSettings } from '../types';
 
 export const DEFAULT_STORE_SETTINGS: StoreSettings = {
   name: 'EFENDI',

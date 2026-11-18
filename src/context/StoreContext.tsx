@@ -13,6 +13,12 @@ import {
   StoreSettings,
 } from '../types';
 import { stripSensitiveSettingsFields, supabaseService } from '../supabase';
+import {
+  buildTelegramDispatchUrl,
+  buildWhatsAppDispatchUrl,
+  normalizeTelegramUsername,
+  normalizeWhatsAppNumber,
+} from '../utils/dispatch';
 import { formatOrderReceiptText } from '../utils/orderFormatter';
 
 interface StoreContextValue {
@@ -59,7 +65,7 @@ interface StoreContextValue {
   deleteCategory: (categoryId: string) => void;
   reorderCategories: (newCategories: Category[]) => void;
   reorderMenuItems: (newMenuItems: MenuItem[]) => void;
-  updateStoreSettings: (settings: StoreSettings) => void;
+  updateStoreSettings: (settings: StoreSettings) => Promise<{ ok: boolean; error?: string }>;
   updateOrderStatus: (orderId: string, status: OrderStatus, cancellationReason?: string) => void;
   deleteOrder: (orderId: string) => void;
   createOrder: (
@@ -736,7 +742,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }).catch((e) => console.warn('Menu reorder sync error:', e));
   };
 
-  const updateStoreSettings = (settings: StoreSettings) => {
+  const updateStoreSettings = async (
+    settings: StoreSettings
+  ): Promise<{ ok: boolean; error?: string }> => {
     lastLocalMutationRef.current = Date.now();
     const wa = settings.whatsappEnabled !== false;
     const tg = settings.telegramEnabled !== false;
@@ -745,6 +753,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     const normalized = stripSensitiveSettingsFields<StoreSettings>({
       ...settings,
+      whatsappNumber: normalizeWhatsAppNumber(settings.whatsappNumber),
+      telegramUsername: normalizeTelegramUsername(settings.telegramUsername),
       whatsappEnabled: wa,
       telegramEnabled: tg,
       directOrderingOnly: settings.directOrderingOnly !== false,
@@ -754,10 +764,41 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       typeof normalized.nextOrderNumber === 'number' ? normalized.nextOrderNumber : null;
     setStoreSettings(normalized);
 
-    authFetch('/api/settings', {
-      method: 'PUT',
-      body: JSON.stringify(normalized),
-    }).catch((e) => console.warn('Settings sync error:', e));
+    try {
+      const res = await authFetch('/api/settings', {
+        method: 'PUT',
+        body: JSON.stringify(normalized),
+      });
+      const raw = await res.text();
+      if (raw && !raw.trim().startsWith('<')) {
+        let parsed: any = null;
+        try {
+          parsed = JSON.parse(raw);
+        } catch {}
+        if (res.ok && parsed?.settings) {
+          setStoreSettings((prev) =>
+            stripSensitiveSettingsFields({ ...prev, ...parsed.settings })
+          );
+          return { ok: true };
+        }
+        if (!res.ok) {
+          // Fallback to direct Supabase authenticated write when API isn't configured with service key
+          const fallback = await supabaseService.setSettings(normalized);
+          if (fallback.ok) return { ok: true };
+          return { ok: false, error: parsed?.error || fallback.error || `Request failed (${res.status})` };
+        }
+        return { ok: true };
+      }
+
+      // If /api/settings returned HTML (e.g. static proxy), persist directly via authenticated Supabase client
+      const fallback = await supabaseService.setSettings(normalized);
+      if (fallback.ok) return { ok: true };
+      return { ok: false, error: fallback.error || `API returned non-JSON response (${res.status})` };
+    } catch (e: any) {
+      const fallback = await supabaseService.setSettings(normalized);
+      if (fallback.ok) return { ok: true };
+      return { ok: false, error: e?.message || fallback.error || 'Settings sync failed' };
+    }
   };
 
   const updateOrderStatus = (orderId: string, status: OrderStatus, cancellationReason?: string) => {
@@ -841,14 +882,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     const messageText = formatOrderReceiptText(newOrder, storeSettings.currency, itemNotesMap);
 
-    const cleanPhone = (storeSettings.whatsappNumber || '').replace(/[^0-9]/g, '');
-    const cleanUser = (storeSettings.telegramUsername || '').replace('@', '');
-    const whatsappLink = cleanPhone
-      ? `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(messageText)}`
-      : '';
-    const telegramLink = cleanUser
-      ? `https://t.me/${cleanUser}?text=${encodeURIComponent(messageText)}`
-      : '';
+    const whatsappLink = buildWhatsAppDispatchUrl(storeSettings.whatsappNumber, messageText);
+    const telegramLink = buildTelegramDispatchUrl(storeSettings.telegramUsername, messageText);
 
     const link =
       channel === 'whatsapp' ? whatsappLink : channel === 'telegram' ? telegramLink : '';
