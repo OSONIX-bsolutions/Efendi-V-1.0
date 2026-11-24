@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import { useStore } from '../context/StoreContext';
 import { t } from '../i18n/translations';
+import { getEffectiveWorkingHours } from '../utils/workingHours';
 import { Heart, Clock, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface MenuHeroProps {
@@ -99,40 +100,58 @@ export const MenuHero: React.FC<MenuHeroProps> = ({
     });
   };
 
+  const effectiveHours = useMemo(
+    () => getEffectiveWorkingHours(storeSettings),
+    [storeSettings]
+  );
+
   return (
     <div className="pt-4 pb-4 space-y-3.5">
       {/* Top Banner Notice: Live Working Hours Indicator */}
       <div className="flex flex-wrap items-center justify-between gap-2 p-3 rounded-2xl bg-amber-500/10 dark:bg-amber-500/15 border border-amber-500/20 text-xs">
-        <div className="flex items-center gap-2">
-          {/* Status Light Indicator */}
-          <span className="relative flex h-3 w-3">
-            {isStoreOpen && (
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-            )}
-            <span
-              className={`relative inline-flex rounded-full h-3 w-3 ${
-                isStoreOpen ? 'bg-emerald-500' : 'bg-rose-500'
-              }`}
-            />
-          </span>
+        {isLoadingCatalog ? (
+          <>
+            <div className="flex items-center gap-2 animate-pulse">
+              <span className="h-3 w-3 rounded-full bg-neutral-300 dark:bg-neutral-700" />
+              <span className="h-3.5 w-20 rounded bg-neutral-300 dark:bg-neutral-700" />
+              <span className="h-3.5 w-24 rounded bg-neutral-200 dark:bg-neutral-800" />
+            </div>
+            <span className="h-3 w-40 rounded bg-neutral-200 dark:bg-neutral-800 animate-pulse" />
+          </>
+        ) : (
+          <>
+            <div className="flex items-center gap-2">
+              {/* Status Light Indicator */}
+              <span className="relative flex h-3 w-3">
+                {isStoreOpen && (
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                )}
+                <span
+                  className={`relative inline-flex rounded-full h-3 w-3 ${
+                    isStoreOpen ? 'bg-emerald-500' : 'bg-rose-500'
+                  }`}
+                />
+              </span>
 
-          <span className="font-bold text-neutral-900 dark:text-white">
-            {isStoreOpen ? t('openNow', language) : t('closedNow', language)}
-          </span>
+              <span className="font-bold text-neutral-900 dark:text-white">
+                {isStoreOpen ? t('openNow', language) : t('closedNow', language)}
+              </span>
 
-          <span className="text-neutral-400">·</span>
+              <span className="text-neutral-400">·</span>
 
-          <span className="text-neutral-600 dark:text-neutral-300 flex items-center gap-1 font-medium">
-            <Clock className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-            <span>
-              {storeSettings.workingHours.open} - {storeSettings.workingHours.close}
+              <span className="text-neutral-600 dark:text-neutral-300 flex items-center gap-1 font-medium tabular-nums">
+                <Clock className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                <span>
+                  {effectiveHours.open} - {effectiveHours.close}
+                </span>
+              </span>
+            </div>
+
+            <span className="text-[11px] text-neutral-500 dark:text-neutral-400">
+              {effectiveHours.daysNote[language] || effectiveHours.daysNote.en}
             </span>
-          </span>
-        </div>
-
-        <span className="text-[11px] text-neutral-500 dark:text-neutral-400">
-          {storeSettings.workingHours.daysNote[language] || storeSettings.workingHours.daysNote.en}
-        </span>
+          </>
+        )}
       </div>
 
       {/* Scrollable Category Tabs with Left/Right Scroll Arrows */}

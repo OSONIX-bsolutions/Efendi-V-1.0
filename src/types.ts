@@ -47,8 +47,8 @@ export interface SecretAccessShortcuts {
 export interface WorkingHoursRow {
   id: string;
   days?: string; // e.g. "Душанбе - Ҷумъа (Пн-Пт)", "Шанбе - Якшанбе", or custom
-  open: string;  // e.g. "10:00"
-  close: string; // e.g. "23:00"
+  open: string;  // e.g. "08:00"
+  close: string; // e.g. "03:00"
 }
 
 export interface StoreSettings {
@@ -66,9 +66,10 @@ export interface StoreSettings {
   instagram: string;
   facebook: string;
   telegramChannel: string;
+  timezone?: string; // e.g. "Asia/Dushanbe"
   workingHours: {
-    open: string; // "10:00"
-    close: string; // "23:00"
+    open: string; // e.g. "08:00"
+    close: string; // e.g. "03:00"
     daysNote: LocalizedString;
   };
   workingHoursRows?: WorkingHoursRow[];

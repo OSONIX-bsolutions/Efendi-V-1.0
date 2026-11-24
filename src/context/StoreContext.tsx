@@ -19,6 +19,10 @@ import {
   normalizeTelegramUsername,
   normalizeWhatsAppNumber,
 } from '../utils/dispatch';
+import {
+  isStoreCurrentlyOpen,
+  normalizeWorkingHoursSettings,
+} from '../utils/workingHours';
 import { formatOrderReceiptText } from '../utils/orderFormatter';
 
 interface StoreContextValue {
@@ -290,7 +294,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           const settings = await setRes.json();
           if (settings && typeof settings === 'object') {
             setStoreSettings((prev) =>
-              stripSensitiveSettingsFields({ ...prev, ...settings })
+              normalizeWorkingHoursSettings(
+                stripSensitiveSettingsFields({ ...prev, ...settings })
+              )
             );
           }
         }
@@ -331,7 +337,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         ) {
           clean.nextOrderNumber = localMinOrderCounterRef.current;
         }
-        setStoreSettings((prev) => stripSensitiveSettingsFields({ ...prev, ...clean }));
+        setStoreSettings((prev) =>
+          normalizeWorkingHoursSettings(
+            stripSensitiveSettingsFields({ ...prev, ...clean })
+          )
+        );
       }
     });
 
@@ -557,40 +567,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, []);
 
   const isStoreOpen = useMemo(() => {
-    if (storeSettings.manualStatusOverride === 'force_open') return true;
-    if (storeSettings.manualStatusOverride === 'force_closed') return false;
-
-    try {
-      const rows =
-        storeSettings.workingHoursRows && storeSettings.workingHoursRows.length > 0
-          ? storeSettings.workingHoursRows
-          : [
-              {
-                id: 'default',
-                days: '',
-                open: storeSettings.workingHours?.open || '10:00',
-                close: storeSettings.workingHours?.close || '23:30',
-              },
-            ];
-
-      const nowMinutes = currentTime.getHours() * 60 + currentTime.getMinutes();
-
-      return rows.some((row) => {
-        if (!row.open || !row.close) return false;
-        const [openHour, openMin] = row.open.split(':').map(Number);
-        const [closeHour, closeMin] = row.close.split(':').map(Number);
-
-        const openMinutes = (openHour || 0) * 60 + (openMin || 0);
-        const closeMinutes = (closeHour || 0) * 60 + (closeMin || 0);
-
-        if (closeMinutes >= openMinutes) {
-          return nowMinutes >= openMinutes && nowMinutes <= closeMinutes;
-        }
-        return nowMinutes >= openMinutes || nowMinutes <= closeMinutes;
-      });
-    } catch {
-      return true;
-    }
+    return isStoreCurrentlyOpen(storeSettings, currentTime);
   }, [storeSettings, currentTime]);
 
   // 10. Upload Image -> Supabase Storage (direct authenticated upload OR authenticated backend proxy)
@@ -751,15 +728,17 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const channel: 'whatsapp' | 'telegram' | 'both' =
       wa && tg ? 'both' : wa ? 'whatsapp' : tg ? 'telegram' : 'whatsapp';
 
-    const normalized = stripSensitiveSettingsFields<StoreSettings>({
-      ...settings,
-      whatsappNumber: normalizeWhatsAppNumber(settings.whatsappNumber),
-      telegramUsername: normalizeTelegramUsername(settings.telegramUsername),
-      whatsappEnabled: wa,
-      telegramEnabled: tg,
-      directOrderingOnly: settings.directOrderingOnly !== false,
-      orderChannel: channel,
-    });
+    const normalized = normalizeWorkingHoursSettings(
+      stripSensitiveSettingsFields<StoreSettings>({
+        ...settings,
+        whatsappNumber: normalizeWhatsAppNumber(settings.whatsappNumber),
+        telegramUsername: normalizeTelegramUsername(settings.telegramUsername),
+        whatsappEnabled: wa,
+        telegramEnabled: tg,
+        directOrderingOnly: settings.directOrderingOnly !== false,
+        orderChannel: channel,
+      })
+    );
     localMinOrderCounterRef.current =
       typeof normalized.nextOrderNumber === 'number' ? normalized.nextOrderNumber : null;
     setStoreSettings(normalized);
@@ -777,7 +756,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         } catch {}
         if (res.ok && parsed?.settings) {
           setStoreSettings((prev) =>
-            stripSensitiveSettingsFields({ ...prev, ...parsed.settings })
+            normalizeWorkingHoursSettings(
+              stripSensitiveSettingsFields({ ...prev, ...parsed.settings })
+            )
           );
           return { ok: true };
         }

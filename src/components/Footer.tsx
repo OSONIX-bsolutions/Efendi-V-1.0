@@ -2,6 +2,7 @@ import React from 'react';
 import { useStore } from '../context/StoreContext';
 import { t } from '../i18n/translations';
 import { buildTelegramDispatchUrl, buildWhatsAppDispatchUrl } from '../utils/dispatch';
+import { getEffectiveWorkingHours } from '../utils/workingHours';
 import {
   MapPin,
   Clock,
@@ -41,10 +42,11 @@ export const Footer: React.FC<FooterProps> = ({ onOpenAdmin }) => {
 
   const currentAddress =
     storeSettings.address[language] || storeSettings.address.en || storeSettings.address.ru;
+  const effectiveHours = getEffectiveWorkingHours(storeSettings);
   const daysNote =
-    storeSettings.workingHours.daysNote[language] ||
-    storeSettings.workingHours.daysNote.en ||
-    storeSettings.workingHours.daysNote.ru;
+    effectiveHours.daysNote[language] ||
+    effectiveHours.daysNote.en ||
+    effectiveHours.daysNote.ru;
 
   return (
     <footer className="mt-16 bg-white dark:bg-neutral-900 border-t border-neutral-200 dark:border-neutral-800 pt-12 pb-24 text-neutral-600 dark:text-neutral-400">
@@ -99,7 +101,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenAdmin }) => {
                 <span>{t('workingHours', language)}</span>
               </div>
               <p className="text-sm font-semibold text-neutral-800 dark:text-neutral-200 tabular-nums">
-                {storeSettings.workingHours.open} — {storeSettings.workingHours.close}
+                {effectiveHours.open} — {effectiveHours.close}
               </p>
               <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
                 {daysNote}
@@ -181,8 +183,9 @@ export const Footer: React.FC<FooterProps> = ({ onOpenAdmin }) => {
                     <Instagram className="w-4 h-4" />
                   </a>
                 )}
-
+                
                 {/* Facebook */}
+                {/*
                 {storeSettings.facebook && (
                   <a
                     href={storeSettings.facebook}
@@ -193,7 +196,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenAdmin }) => {
                   >
                     <Facebook className="w-4 h-4" />
                   </a>
-                )}
+                )}*/}
               </div>
             </div>
           </div>

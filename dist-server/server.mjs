@@ -32,20 +32,21 @@ var DEFAULT_STORE_SETTINGS = {
   instagram: "https://instagram.com/quickbite.tj",
   facebook: "https://facebook.com/quickbite.tj",
   telegramChannel: "https://t.me/quickbite_express",
+  timezone: "Asia/Dushanbe",
   workingHours: {
-    open: "10:00",
+    open: "08:00",
     close: "03:00",
     daysNote: {
-      tj: "\u04B2\u0430\u043C\u0430\u0440\u04EF\u0437\u0430 \u0430\u0437 10:00 \u0442\u043E 03:00 \u0431\u0435 \u0438\u0441\u0442\u0438\u0440\u043E\u04B3\u0430\u0442",
-      ru: "\u0415\u0436\u0435\u0434\u043D\u0435\u0432\u043D\u043E \u0441 10:00 \u0434\u043E 03:00 \u0431\u0435\u0437 \u0432\u044B\u0445\u043E\u0434\u043D\u044B\u0445",
-      en: "Every day from 10:00 AM to 03:00 AM"
+      tj: "\u04B2\u0430\u043C\u0430\u0440\u04EF\u0437\u0430 \u0430\u0437 08:00 \u0442\u043E 03:00 \u0431\u0435 \u0438\u0441\u0442\u0438\u0440\u043E\u04B3\u0430\u0442",
+      ru: "\u0415\u0436\u0435\u0434\u043D\u0435\u0432\u043D\u043E \u0441 08:00 \u0434\u043E 03:00 \u0431\u0435\u0437 \u0432\u044B\u0445\u043E\u0434\u043D\u044B\u0445",
+      en: "Every day from 08:00 to 03:00"
     }
   },
   workingHoursRows: [
     {
       id: "row-1",
       days: "\u04B2\u0430\u043C\u0430\u0440\u04EF\u0437\u0430 / \u0415\u0436\u0435\u0434\u043D\u0435\u0432\u043D\u043E",
-      open: "10:00",
+      open: "08:00",
       close: "03:00"
     }
   ],
@@ -75,6 +76,113 @@ var DEFAULT_STORE_SETTINGS = {
 var DEFAULT_CATEGORIES = [];
 var DEFAULT_MENU_ITEMS = [];
 var INITIAL_ORDERS = [];
+
+// src/utils/workingHours.ts
+var DEFAULT_STORE_TIMEZONE = "Asia/Dushanbe";
+function parseTimeToMinutes(raw) {
+  if (!raw || typeof raw !== "string") return null;
+  const trimmed = raw.trim().toUpperCase();
+  if (!trimmed) return null;
+  const amPmMatch = trimmed.match(/^(\d{1,2}):(\d{2})(?::\d{2})?\s*(AM|PM)$/);
+  if (amPmMatch) {
+    let hour2 = Number(amPmMatch[1]);
+    const min2 = Number(amPmMatch[2]);
+    const period = amPmMatch[3];
+    if (!Number.isInteger(hour2) || !Number.isInteger(min2) || hour2 < 1 || hour2 > 12 || min2 < 0 || min2 > 59) {
+      return null;
+    }
+    if (period === "AM") {
+      hour2 = hour2 === 12 ? 0 : hour2;
+    } else {
+      hour2 = hour2 === 12 ? 12 : hour2 + 12;
+    }
+    return hour2 * 60 + min2;
+  }
+  const twentyFourMatch = trimmed.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
+  if (!twentyFourMatch) return null;
+  const hour = Number(twentyFourMatch[1]);
+  const min = Number(twentyFourMatch[2]);
+  if (!Number.isInteger(hour) || !Number.isInteger(min) || min < 0 || min > 59) {
+    return null;
+  }
+  if (hour === 24 && min === 0) return 0;
+  if (hour < 0 || hour > 23) return null;
+  return hour * 60 + min;
+}
+function formatTimeHHMM(raw, fallback = "") {
+  const mins = parseTimeToMinutes(raw);
+  if (mins === null) return fallback;
+  const h = Math.floor(mins / 60) % 24;
+  const m = mins % 60;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+}
+function buildDailyHoursNote(open, close) {
+  return {
+    tj: `\u04B2\u0430\u043C\u0430\u0440\u04EF\u0437\u0430 \u0430\u0437 ${open} \u0442\u043E ${close} \u0431\u0435 \u0438\u0441\u0442\u0438\u0440\u043E\u04B3\u0430\u0442`,
+    ru: `\u0415\u0436\u0435\u0434\u043D\u0435\u0432\u043D\u043E \u0441 ${open} \u0434\u043E ${close} \u0431\u0435\u0437 \u0432\u044B\u0445\u043E\u0434\u043D\u044B\u0445`,
+    en: `Every day from ${open} to ${close}`
+  };
+}
+function isAutoDailyTemplate(text) {
+  if (!text || typeof text !== "string") return true;
+  const clean = text.trim();
+  if (!clean) return true;
+  return /^Ҳамарӯза\s+аз\s+\S+\s+то\s+\S+/i.test(clean) || /^Ежедневно\s+с\s+\S+\s+до\s+\S+/i.test(clean) || /^Every\s+day\s+from\s+/i.test(clean);
+}
+function normalizeWorkingHoursSettings(settings, rawRow) {
+  const s = settings && typeof settings === "object" ? settings : {};
+  const rawWh = (s.workingHours && typeof s.workingHours === "object" ? s.workingHours : null) || (s.working_hours && typeof s.working_hours === "object" ? s.working_hours : null) || (rawRow?.working_hours && typeof rawRow.working_hours === "object" ? rawRow.working_hours : null) || {};
+  const rows = Array.isArray(s.workingHoursRows) ? s.workingHoursRows.filter((r) => Boolean(r && typeof r === "object")) : Array.isArray(s.working_hours_rows) ? s.working_hours_rows.filter((r) => Boolean(r && typeof r === "object")) : [];
+  const columnOpen = rawRow?.working_hours_open || rawRow?.open_time || s.openTime || s.open_time;
+  const columnClose = rawRow?.working_hours_close || rawRow?.close_time || s.closeTime || s.close_time;
+  const open = formatTimeHHMM(
+    columnOpen || rawWh.open || rows[0]?.open,
+    "08:00"
+  );
+  const close = formatTimeHHMM(
+    columnClose || rawWh.close || rows[0]?.close,
+    "03:00"
+  );
+  const generatedNote = buildDailyHoursNote(open, close);
+  const existingNote = rawWh.daysNote && typeof rawWh.daysNote === "object" ? rawWh.daysNote : {};
+  const daysNote = {
+    tj: isAutoDailyTemplate(existingNote.tj) ? generatedNote.tj : existingNote.tj,
+    ru: isAutoDailyTemplate(existingNote.ru) ? generatedNote.ru : existingNote.ru,
+    en: isAutoDailyTemplate(existingNote.en) ? generatedNote.en : existingNote.en
+  };
+  let syncedRows;
+  if (rows.length <= 1) {
+    syncedRows = [
+      {
+        id: rows[0]?.id || "row-1",
+        days: rows[0]?.days || "\u04B2\u0430\u043C\u0430\u0440\u04EF\u0437\u0430 / \u0415\u0436\u0435\u0434\u043D\u0435\u0432\u043D\u043E",
+        open,
+        close
+      }
+    ];
+  } else {
+    syncedRows = rows.map((row, idx) => ({
+      ...row,
+      id: row.id || `row-${idx + 1}`,
+      open: formatTimeHHMM(row.open, open),
+      close: formatTimeHHMM(row.close, close)
+    }));
+  }
+  const rawOverride = rawRow?.manual_status_override || s.manualStatusOverride || s.manual_status_override;
+  const manualStatusOverride = rawOverride === "force_open" || rawOverride === "force_closed" ? rawOverride : "auto";
+  const timezone = typeof rawRow?.timezone === "string" && rawRow.timezone.trim() || typeof s.timezone === "string" && s.timezone.trim() || DEFAULT_STORE_TIMEZONE;
+  return {
+    ...settings,
+    timezone,
+    manualStatusOverride,
+    workingHours: {
+      open,
+      close,
+      daysNote
+    },
+    workingHoursRows: syncedRows
+  };
+}
 
 // server.ts
 var __filename = typeof import.meta?.url === "string" && import.meta.url.startsWith("file:") ? fileURLToPath(import.meta.url) : "";
@@ -142,19 +250,22 @@ function normalizeTelegramUsername(raw) {
   if (!raw || typeof raw !== "string") return "";
   return raw.trim().replace(/^https?:\/\/(www\.)?(t\.me|telegram\.me)\//i, "").replace(/^(t\.me|telegram\.me)\//i, "").split(/[?#]/)[0].replace(/\/+$/, "").replace(/^@+/, "").trim();
 }
-function normalizeDispatchSettings(settings) {
+function normalizeDispatchSettings(settings, rawRow) {
   const whatsappEnabled = settings.whatsappEnabled !== false;
   const telegramEnabled = settings.telegramEnabled !== false;
   const orderChannel = whatsappEnabled && telegramEnabled ? "both" : whatsappEnabled ? "whatsapp" : telegramEnabled ? "telegram" : "both";
-  return {
-    ...settings,
-    whatsappNumber: settings.whatsappNumber !== void 0 ? normalizeWhatsAppNumber(settings.whatsappNumber) : "",
-    telegramUsername: settings.telegramUsername !== void 0 ? normalizeTelegramUsername(settings.telegramUsername) : "",
-    whatsappEnabled,
-    telegramEnabled,
-    directOrderingOnly: settings.directOrderingOnly !== false,
-    orderChannel
-  };
+  return normalizeWorkingHoursSettings(
+    {
+      ...settings,
+      whatsappNumber: settings.whatsappNumber !== void 0 ? normalizeWhatsAppNumber(settings.whatsappNumber) : "",
+      telegramUsername: settings.telegramUsername !== void 0 ? normalizeTelegramUsername(settings.telegramUsername) : "",
+      whatsappEnabled,
+      telegramEnabled,
+      directOrderingOnly: settings.directOrderingOnly !== false,
+      orderChannel
+    },
+    rawRow
+  );
 }
 function rowToCategory(row) {
   return {
@@ -417,7 +528,8 @@ async function syncFromSupabase(force = false) {
           ...typeof setRes.data.whatsapp_enabled === "boolean" ? { whatsappEnabled: setRes.data.whatsapp_enabled } : {},
           ...typeof setRes.data.telegram_enabled === "boolean" ? { telegramEnabled: setRes.data.telegram_enabled } : {},
           ...typeof setRes.data.direct_ordering_only === "boolean" ? { directOrderingOnly: setRes.data.direct_ordering_only } : {}
-        })
+        }),
+        setRes.data
       );
       if (pendingOrderCounterOverride !== null) {
         const dbNext = typeof merged.nextOrderNumber === "number" && merged.nextOrderNumber > 0 ? merged.nextOrderNumber : 1;
@@ -845,7 +957,8 @@ async function createApp(options) {
     }
   );
   app.get("/api/settings", async (_req, res) => {
-    await syncFromSupabase();
+    await syncFromSupabase(true);
+    res.setHeader("Cache-Control", "no-store");
     res.json(stripSensitiveSettingsFields(settingsMemory));
   });
   app.put(

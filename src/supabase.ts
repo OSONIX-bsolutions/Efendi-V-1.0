@@ -1,6 +1,7 @@
 import { createClient, RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
 import { AdminRole, Category, MenuItem, OrderStatus, SavedOrder, StoreSettings } from './types';
 import { normalizeTelegramUsername, normalizeWhatsAppNumber } from './utils/dispatch';
+import { normalizeWorkingHoursSettings } from './utils/workingHours';
 
 declare global {
   interface Window {
@@ -327,24 +328,29 @@ export const supabaseService = {
         ? { directOrderingOnly: data.direct_ordering_only }
         : {}),
     });
-    return {
-      ...clean,
-      whatsappNumber: clean.whatsappNumber ? normalizeWhatsAppNumber(clean.whatsappNumber) : '',
-      telegramUsername: clean.telegramUsername
-        ? normalizeTelegramUsername(clean.telegramUsername)
-        : '',
-    };
+    return normalizeWorkingHoursSettings(
+      {
+        ...clean,
+        whatsappNumber: clean.whatsappNumber ? normalizeWhatsAppNumber(clean.whatsappNumber) : '',
+        telegramUsername: clean.telegramUsername
+          ? normalizeTelegramUsername(clean.telegramUsername)
+          : '',
+      },
+      data
+    );
   },
 
   async setSettings(settings: StoreSettings): Promise<{ ok: boolean; error?: string }> {
     if (!isSupabaseConfigured) {
       return { ok: false, error: 'Supabase is not configured' };
     }
-    const clean = stripSensitiveSettingsFields<StoreSettings>({
-      ...settings,
-      whatsappNumber: normalizeWhatsAppNumber(settings.whatsappNumber),
-      telegramUsername: normalizeTelegramUsername(settings.telegramUsername),
-    });
+    const clean = normalizeWorkingHoursSettings(
+      stripSensitiveSettingsFields<StoreSettings>({
+        ...settings,
+        whatsappNumber: normalizeWhatsAppNumber(settings.whatsappNumber),
+        telegramUsername: normalizeTelegramUsername(settings.telegramUsername),
+      })
+    );
     const { error } = await supabase.from('store_settings').upsert({
       id: 'store_config',
       data: clean,

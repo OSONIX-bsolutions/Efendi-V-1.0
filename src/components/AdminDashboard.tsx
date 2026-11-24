@@ -5,6 +5,7 @@ import { AdminRole, Category, MenuItem, OrderStatus, SavedOrder, StoreSettings }
 import { getSupabaseProjectRef, supabaseService } from '../supabase';
 import { normalizeTelegramUsername, normalizeWhatsAppNumber } from '../utils/dispatch';
 import { resolveMenuItemImage, getFallbackImageForCategory } from '../utils/imageFallback';
+import { isStoreCurrentlyOpen, normalizeWorkingHoursSettings } from '../utils/workingHours';
 import * as XLSX from 'xlsx';
 import confetti from 'canvas-confetti';
 import {
@@ -372,13 +373,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
 
   // Store settings form state
-  const [settingsForm, setSettingsForm] = useState<StoreSettings>(() => ({
-    ...storeSettings,
-    whatsappEnabled: storeSettings.whatsappEnabled !== false,
-    telegramEnabled: storeSettings.telegramEnabled !== false,
-    directOrderingOnly: storeSettings.directOrderingOnly !== false,
-    cmsAccessMode: storeSettings.cmsAccessMode || 'hidden',
-  }));
+  const [settingsForm, setSettingsForm] = useState<StoreSettings>(() =>
+    normalizeWorkingHoursSettings({
+      ...storeSettings,
+      whatsappEnabled: storeSettings.whatsappEnabled !== false,
+      telegramEnabled: storeSettings.telegramEnabled !== false,
+      directOrderingOnly: storeSettings.directOrderingOnly !== false,
+      cmsAccessMode: storeSettings.cmsAccessMode || 'hidden',
+    })
+  );
   const [isSettingsFormDirty, setIsSettingsFormDirty] = useState(false);
   const [settingsSavedFeedback, setSettingsSavedFeedback] = useState(false);
   const [settingsError, setSettingsError] = useState('');
@@ -387,13 +390,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
   // Synchronize settingsForm whenever storeSettings updates, ONLY if user is not actively editing
   useEffect(() => {
     if (storeSettings && !isSettingsFormDirty) {
-      setSettingsForm({
-        ...storeSettings,
-        whatsappEnabled: storeSettings.whatsappEnabled !== false,
-        telegramEnabled: storeSettings.telegramEnabled !== false,
-        directOrderingOnly: storeSettings.directOrderingOnly !== false,
-        cmsAccessMode: storeSettings.cmsAccessMode || 'hidden',
-      });
+      setSettingsForm(
+        normalizeWorkingHoursSettings({
+          ...storeSettings,
+          whatsappEnabled: storeSettings.whatsappEnabled !== false,
+          telegramEnabled: storeSettings.telegramEnabled !== false,
+          directOrderingOnly: storeSettings.directOrderingOnly !== false,
+          cmsAccessMode: storeSettings.cmsAccessMode || 'hidden',
+        })
+      );
     }
   }, [storeSettings, isSettingsFormDirty]);
 
@@ -747,11 +752,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isOpen, onClose 
     setDevWhatsappInput(cleanedWa);
     setDevTelegramInput(cleanedTg);
 
-    const nextSettings: StoreSettings = {
+    const nextSettings: StoreSettings = normalizeWorkingHoursSettings({
       ...settingsForm,
       whatsappNumber: cleanedWa,
       telegramUsername: cleanedTg,
-    };
+    });
     setSettingsForm(nextSettings);
 
     const res = await updateStoreSettings(nextSettings);
@@ -2649,16 +2654,33 @@ create policy "Admin delete orders" on public.orders for delete
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-neutral-700 dark:text-neutral-300 mb-1">
-                    {language === 'tj' ? 'Соати кушодашавӣ' : 'Время открытия'}
+                    {language === 'tj' ? 'Соати кушодашавӣ' : language === 'ru' ? 'Время открытия' : 'Opening Time'}
                   </label>
                   <input
                     type="time"
                     value={settingsForm.workingHours.open}
                     onChange={(e) => {
+                      const nextOpen = e.target.value;
                       setIsSettingsFormDirty(true);
-                      setSettingsForm({
-                        ...settingsForm,
-                        workingHours: { ...settingsForm.workingHours, open: e.target.value },
+                      setSettingsForm((prev) => {
+                        const updated = {
+                          ...prev,
+                          workingHours: { ...prev.workingHours, open: nextOpen },
+                          workingHoursRows:
+                            prev.workingHoursRows && prev.workingHoursRows.length <= 1
+                              ? [
+                                  {
+                                    ...(prev.workingHoursRows[0] || {
+                                      id: 'row-1',
+                                      days: 'Ҳамарӯза / Ежедневно',
+                                      close: prev.workingHours.close,
+                                    }),
+                                    open: nextOpen,
+                                  },
+                                ]
+                              : prev.workingHoursRows,
+                        };
+                        return nextOpen ? normalizeWorkingHoursSettings(updated) : updated;
                       });
                     }}
                     className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-50 dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 text-xs font-mono"
@@ -2667,20 +2689,117 @@ create policy "Admin delete orders" on public.orders for delete
 
                 <div>
                   <label className="block text-xs font-bold text-neutral-700 dark:text-neutral-300 mb-1">
-                    {language === 'tj' ? 'Соати пӯшидашавӣ' : 'Время закрытия'}
+                    {language === 'tj' ? 'Соати пӯшидашавӣ' : language === 'ru' ? 'Время закрытия' : 'Closing Time'}
                   </label>
                   <input
                     type="time"
                     value={settingsForm.workingHours.close}
                     onChange={(e) => {
+                      const nextClose = e.target.value;
                       setIsSettingsFormDirty(true);
-                      setSettingsForm({
-                        ...settingsForm,
-                        workingHours: { ...settingsForm.workingHours, close: e.target.value },
+                      setSettingsForm((prev) => {
+                        const updated = {
+                          ...prev,
+                          workingHours: { ...prev.workingHours, close: nextClose },
+                          workingHoursRows:
+                            prev.workingHoursRows && prev.workingHoursRows.length <= 1
+                              ? [
+                                  {
+                                    ...(prev.workingHoursRows[0] || {
+                                      id: 'row-1',
+                                      days: 'Ҳамарӯза / Ежедневно',
+                                      open: prev.workingHours.open,
+                                    }),
+                                    close: nextClose,
+                                  },
+                                ]
+                              : prev.workingHoursRows,
+                        };
+                        return nextClose ? normalizeWorkingHoursSettings(updated) : updated;
                       });
                     }}
                     className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-50 dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 text-xs font-mono"
                   />
+                </div>
+              </div>
+
+              {/* Store Status Mode & Live Schedule Preview */}
+              <div className="p-4 rounded-2xl bg-neutral-50 dark:bg-neutral-800/60 border border-neutral-200/80 dark:border-neutral-700/80 space-y-2.5">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="text-xs font-bold text-neutral-700 dark:text-neutral-300">
+                    {language === 'tj'
+                      ? 'Ҳолати кории тарабхона'
+                      : language === 'ru'
+                      ? 'Режим работы заведения'
+                      : 'Store Open / Closed Mode'}
+                  </span>
+                  <span
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold ${
+                      isStoreCurrentlyOpen(settingsForm)
+                        ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400'
+                        : 'bg-rose-500/15 text-rose-600 dark:text-rose-400'
+                    }`}
+                  >
+                    <span
+                      className={`w-2 h-2 rounded-full ${
+                        isStoreCurrentlyOpen(settingsForm) ? 'bg-emerald-500' : 'bg-rose-500'
+                      }`}
+                    />
+                    {isStoreCurrentlyOpen(settingsForm) ? t('openNow', language) : t('closedNow', language)}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2">
+                  {(
+                    [
+                      {
+                        value: 'auto',
+                        label:
+                          language === 'tj'
+                            ? 'Авто (аз рӯи соат)'
+                            : language === 'ru'
+                            ? 'Авто (по расписанию)'
+                            : 'Auto (Schedule)',
+                      },
+                      {
+                        value: 'force_open',
+                        label:
+                          language === 'tj'
+                            ? 'Ҳамеша кушода'
+                            : language === 'ru'
+                            ? 'Всегда открыто'
+                            : 'Force Open',
+                      },
+                      {
+                        value: 'force_closed',
+                        label:
+                          language === 'tj'
+                            ? 'Ҳамеша пӯшида'
+                            : language === 'ru'
+                            ? 'Всегда закрыто'
+                            : 'Force Closed',
+                      },
+                    ] as const
+                  ).map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => {
+                        setIsSettingsFormDirty(true);
+                        setSettingsForm({
+                          ...settingsForm,
+                          manualStatusOverride: opt.value,
+                        });
+                      }}
+                      className={`px-3 py-2 rounded-xl text-[11px] font-bold border transition-all cursor-pointer ${
+                        (settingsForm.manualStatusOverride || 'auto') === opt.value
+                          ? 'bg-amber-500 text-white border-amber-500 shadow-xs'
+                          : 'bg-white dark:bg-neutral-900 text-neutral-700 dark:text-neutral-300 border-neutral-200 dark:border-neutral-700 hover:border-amber-400'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
                 </div>
               </div>
 

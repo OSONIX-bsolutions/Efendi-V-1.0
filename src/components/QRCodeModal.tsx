@@ -4,6 +4,7 @@ import { useStore } from '../context/StoreContext';
 import { t } from '../i18n/translations';
 import { Category, Language, LocalizedString, MenuItem } from '../types';
 import { normalizeTelegramUsername, normalizeWhatsAppNumber } from '../utils/dispatch';
+import { getEffectiveWorkingHoursRows } from '../utils/workingHours';
 import {
   X,
   Download,
@@ -193,29 +194,10 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({ isOpen, onClose }) => 
     [sections]
   );
 
-  const workingHoursList = useMemo(() => {
-    const fallbackDays = getLocalized(
-      storeSettings.workingHours.daysNote,
-      language,
-      t('daily', language)
-    );
-    if (storeSettings.workingHoursRows && storeSettings.workingHoursRows.length > 0) {
-      return storeSettings.workingHoursRows.map((row, idx) => ({
-        id: row.id || String(idx),
-        days: row.days || fallbackDays,
-        open: row.open,
-        close: row.close,
-      }));
-    }
-    return [
-      {
-        id: 'default',
-        days: fallbackDays,
-        open: storeSettings.workingHours.open,
-        close: storeSettings.workingHours.close,
-      },
-    ];
-  }, [storeSettings.workingHours, storeSettings.workingHoursRows, language]);
+  const workingHoursList = useMemo(
+    () => getEffectiveWorkingHoursRows(storeSettings, language),
+    [storeSettings, language]
+  );
 
   const currentAddress = useMemo(
     () => getLocalized(storeSettings.address, language),

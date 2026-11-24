@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { useStore } from '../context/StoreContext';
 import { Language } from '../types';
 import { t } from '../i18n/translations';
+import { getEffectiveWorkingHours, getEffectiveWorkingHoursRows } from '../utils/workingHours';
 import {
   Moon,
   Sun,
@@ -490,26 +491,19 @@ export const Header: React.FC<HeaderProps> = ({ onOpenQR, onOpenAdmin, onOpenMyO
               <span>{t('workingHours', language)}</span>
             </span>
             <div className="space-y-1 text-xs">
-              {(storeSettings.workingHoursRows && storeSettings.workingHoursRows.length > 0
-                ? storeSettings.workingHoursRows
-                : [
-                    {
-                      id: 'default',
-                      days: storeSettings.workingHours.daysNote[language] || storeSettings.workingHours.daysNote.en,
-                      open: storeSettings.workingHours.open,
-                      close: storeSettings.workingHours.close,
-                    },
-                  ]
-              ).map((row, idx) => (
-                <div key={row.id || idx} className="flex items-center justify-between text-neutral-700 dark:text-neutral-300">
-                  <span className="text-[11px] text-neutral-500 dark:text-neutral-400">
-                    {row.days || (storeSettings.workingHours.daysNote[language] || storeSettings.workingHours.daysNote.en)}
-                  </span>
-                  <span className="font-bold tabular-nums">
-                    {row.open} — {row.close}
-                  </span>
-                </div>
-              ))}
+              {getEffectiveWorkingHoursRows(storeSettings, language).map((row, idx) => {
+                const effectiveHours = getEffectiveWorkingHours(storeSettings);
+                return (
+                  <div key={row.id || idx} className="flex items-center justify-between text-neutral-700 dark:text-neutral-300">
+                    <span className="text-[11px] text-neutral-500 dark:text-neutral-400">
+                      {row.days || effectiveHours.daysNote[language] || effectiveHours.daysNote.en}
+                    </span>
+                    <span className="font-bold tabular-nums">
+                      {row.open} — {row.close}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           </div>
 

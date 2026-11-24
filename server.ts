@@ -23,6 +23,7 @@ import {
   SavedOrder,
   StoreSettings,
 } from './src/types.js';
+import { normalizeWorkingHoursSettings } from './src/utils/workingHours.js';
 
 const __filename =
   typeof import.meta?.url === 'string' && import.meta.url.startsWith('file:')
@@ -123,7 +124,10 @@ function normalizeTelegramUsername(raw?: string | null): string {
     .trim();
 }
 
-function normalizeDispatchSettings<T extends Record<string, any>>(settings: T): T {
+function normalizeDispatchSettings<T extends Record<string, any>>(
+  settings: T,
+  rawRow?: Record<string, any> | null
+): T {
   const whatsappEnabled = settings.whatsappEnabled !== false;
   const telegramEnabled = settings.telegramEnabled !== false;
   const orderChannel: 'whatsapp' | 'telegram' | 'both' =
@@ -134,21 +138,24 @@ function normalizeDispatchSettings<T extends Record<string, any>>(settings: T): 
       : telegramEnabled
       ? 'telegram'
       : 'both';
-  return {
-    ...settings,
-    whatsappNumber:
-      settings.whatsappNumber !== undefined
-        ? normalizeWhatsAppNumber(settings.whatsappNumber)
-        : '',
-    telegramUsername:
-      settings.telegramUsername !== undefined
-        ? normalizeTelegramUsername(settings.telegramUsername)
-        : '',
-    whatsappEnabled,
-    telegramEnabled,
-    directOrderingOnly: settings.directOrderingOnly !== false,
-    orderChannel,
-  };
+  return normalizeWorkingHoursSettings(
+    {
+      ...settings,
+      whatsappNumber:
+        settings.whatsappNumber !== undefined
+          ? normalizeWhatsAppNumber(settings.whatsappNumber)
+          : '',
+      telegramUsername:
+        settings.telegramUsername !== undefined
+          ? normalizeTelegramUsername(settings.telegramUsername)
+          : '',
+      whatsappEnabled,
+      telegramEnabled,
+      directOrderingOnly: settings.directOrderingOnly !== false,
+      orderChannel,
+    },
+    rawRow
+  );
 }
 
 // Row <-> Domain mappers (aligned with src/supabase.ts)
@@ -490,7 +497,8 @@ async function syncFromSupabase(force = false) {
           ...(typeof setRes.data.direct_ordering_only === 'boolean'
             ? { directOrderingOnly: setRes.data.direct_ordering_only }
             : {}),
-        })
+        }),
+        setRes.data
       );
       if (pendingOrderCounterOverride !== null) {
         const dbNext =
@@ -1016,7 +1024,8 @@ export async function createApp(options?: { serveFrontend?: boolean }): Promise<
   // -------------------------------------------------------------
 
   app.get('/api/settings', async (_req: Request, res: Response) => {
-    await syncFromSupabase();
+    await syncFromSupabase(true);
+    res.setHeader('Cache-Control', 'no-store');
     res.json(stripSensitiveSettingsFields(settingsMemory));
   });
 
